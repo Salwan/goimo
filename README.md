@@ -1,10 +1,10 @@
 # Goimo
 
-Native port of [OimoPhysics](https://github.com/saharan/OimoPhysics).
+Native Go port of [OimoPhysics](https://github.com/saharan/OimoPhysics).
 
 A lightweight 3D physics engine.
 
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) [![npm version](https://badge.fury.io/js/oimophysics.svg)](https://badge.fury.io/js/oimophysics)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 ## [OimoPhysics API Documentation](https://saharan.github.io/OimoPhysics/)
 
