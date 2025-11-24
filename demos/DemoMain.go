@@ -1,0 +1,108 @@
+package demos
+
+import (
+	"time"
+
+	"github.com/g3n/engine/app"
+	"github.com/g3n/engine/camera"
+	"github.com/g3n/engine/core"
+	"github.com/g3n/engine/gls"
+	"github.com/g3n/engine/gui"
+	"github.com/g3n/engine/math32"
+	"github.com/g3n/engine/renderer"
+	"github.com/g3n/engine/util/helper"
+	"github.com/g3n/engine/window"
+)
+
+// OimoPhysics demo box.
+
+// Next TODO:
+// - Create and init World instance before demo construction
+// - Implement DemoBase.init() at start of initBasicDemo()
+
+type DemoMain struct {
+	application *app.Application
+	gs          *gls.GLS
+	root        *core.Node
+	width       int
+	height      int
+	keyState    *window.KeyState
+	cam         *camera.Camera
+	world       *World
+}
+
+func NewDemoMain() *DemoMain {
+	dm := DemoMain{}
+	dm.application = app.App(1280, 720, "Goimo Demos: Base Demo")
+	dm.gs = dm.application.Gls()
+	dm.width, dm.height = dm.application.GetSize()
+	dm.root = core.NewNode()
+	gui.Manager().Set(dm.root)
+	dm.keyState = dm.application.KeyState()
+
+	dm.cam = camera.New(float32(dm.width) / float32(dm.height))
+	dm.cam.SetPosition(0, 5, 10)
+	dm.cam.LookAt(math32.NewVector3(0, 0, 0), math32.NewVector3(0, 1, 0))
+	dm.root.Add(dm.cam)
+
+	dm.gs.ClearColor(0.1, 0.1, 0.1, 1.0)
+	dm.root.Add(helper.NewAxes(0.5))
+	dm.root.Add(helper.NewGrid(10.0, 1.0, &math32.Color{R: 0.2, G: 0.2, B: 0.2}))
+
+	camera.NewOrbitControl(dm.cam)
+
+	onResize := func(evname string, ev interface{}) {
+		dm.width, dm.height = dm.application.GetSize()
+		aspect_ratio := float32(dm.width) / float32(dm.height)
+		dm.gs.Viewport(0, 0, int32(dm.width), int32(dm.height))
+		dm.cam.SetAspect(aspect_ratio)
+		dm.cam.SetFov(60)
+	}
+	dm.application.Subscribe(window.OnWindowSize, onResize)
+	onResize("", nil)
+
+	dm.initBasicDemo()
+
+	return &dm
+}
+
+func (dm *DemoMain) initBasicDemo() {
+	dm.cam.SetPosition(0, 7, 9)
+	dm.cam.LookAt(math32.NewVector3(0, 2, 0), math32.NewVector3(0, 1, 0))
+
+	thickness := float32(0.5)
+	OimoUtil.AddBox(dm.world, &math32.Vector3{X: 0, Y: -thickness, Z: 0},
+		&math32.Vector3{X: 7, Y: thickness, Z: 7}, true)
+
+	w, h, n := 2, 2, 5
+	sp, size := float32(0.61), float32(0.3)
+	for i := range n {
+		for j := -w; j <= w+1; j++ {
+			for k := -h; k <= h+1; k++ {
+				pos := math32.Vector3{X: float32(j) * sp, Y: size + float32(i)*size*3, Z: float32(k) * sp}
+				box := OimoUtil.AddBox(dm.world, &pos,
+					&math32.Vector3{X: size, Y: size, Z: size}, false)
+				box.SetAngularVelocity(MathUtil.RandVec3In(-0.05, 0.05))
+			}
+		}
+	}
+}
+
+func (dm *DemoMain) Run() {
+	dm.application.Run(func(render *renderer.Renderer, deltaTime time.Duration) {
+		dt := float32(deltaTime.Seconds())
+		dm.Update(dt)
+		dm.Render(render)
+	})
+}
+
+func (dm *DemoMain) Update(dt float32) {
+	if dm.keyState.Pressed(window.KeyQ) {
+		dm.application.Exit()
+	}
+}
+
+func (dm *DemoMain) Render(render *renderer.Renderer) {
+	dm.gs.Clear(gls.DEPTH_BUFFER_BIT | gls.STENCIL_BUFFER_BIT | gls.COLOR_BUFFER_BIT)
+	render.Render(dm.root, dm.cam)
+}
