@@ -40,3 +40,12 @@ func (MathUtilNamespace) RandVec3In(min, max float32) math32.Vector3 {
 		Y: min + MathUtil.Rand()*(max-min),
 		Z: min + MathUtil.Rand()*(max-min)}
 }
+
+// Returns `Math.sqrt(x)`.
+func (MathUtilNamespace) Sqrt(x float64) float64 {
+	return math.Sqrt(x)
+}
+
+func (MathUtilNamespace) toFixed8(x float64) float64 {
+	return math.Round(x*1e8) / 1e8
+}

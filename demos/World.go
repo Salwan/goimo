@@ -1,7 +1,5 @@
 package demos
 
-import "github.com/g3n/engine/math32"
-
 ////////////////////// World (oimo/dynamics/World.go)
 // The physics simulation world. This manages entire the dynamic simulation. You can add rigid bodies and joints to the world to simulate them.
 
@@ -23,7 +21,7 @@ type World struct {
 	numVelocityIterations int
 	numPositionIterations int
 
-	gravity math32.Vector3
+	gravity Vec3
 
 	timeStep            *TimeStep
 	island              *Island
@@ -40,7 +38,7 @@ type World struct {
 
 // Creates a new physics world, with broad-phase collision detection algorithm `broadPhaseType` and gravitational acceleration `gravity`.
 // Defaults: _BVH, nil
-func NewWorld(broadPhaseType BroadPhaseType, gravity *math32.Vector3) *World {
+func NewWorld(broadPhaseType BroadPhaseType, gravity *Vec3) *World {
 	w := World{}
 	switch broadPhaseType {
 	case _BRUTE_FORCE:
@@ -52,7 +50,7 @@ func NewWorld(broadPhaseType BroadPhaseType, gravity *math32.Vector3) *World {
 	w.contactManager = NewContactManager(w.broadPhase)
 
 	if gravity == nil {
-		gravity = &math32.Vector3{X: 0, Y: -9.80665, Z: 0}
+		gravity = &Vec3{x: 0, y: -9.80665, z: 0}
 	}
 	w.gravity = *gravity
 
@@ -72,6 +70,38 @@ func NewWorld(broadPhaseType BroadPhaseType, gravity *math32.Vector3) *World {
 	w.pool = NewPool()
 
 	return &w
+}
+
+func (w *World) step(timeStep float64) {
+	if w.timeStep.Dt > 0 {
+		w.timeStep.DtRatio = timeStep / w.timeStep.Dt
+	}
+	w.timeStep.Dt = timeStep
+	w.timeStep.InvDt = 1.0 / timeStep
+
+	// Profile hook: totalTime
+	w.updateContacts()
+	w.solveIslands()
+}
+
+func (w *World) updateContacts() {
+	// Profile hook: broadPhaseCollisionTime
+	w.contactManager.updateContacts()
+	// Profile hook: narrowPhaseCollisionTime
+	w.contactManager.updateManifolds()
+}
+
+func (w *World) solveIslands() {
+	// Profile hook: dynamicsTime
+	// wake up all rigid bodies if sleeping is disabled
+	if Settings.DisableSleeping {
+		//b := w.rigidBodyList
+		// iterate rigidBodyList til last and set
+		// b.sleeping = false
+		// b.sleepTime = 0
+	}
+
+	// TODO
 }
 
 func (w *World) AddRigidBody(rigidBody *RigidBody) {}

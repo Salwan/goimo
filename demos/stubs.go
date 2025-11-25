@@ -21,16 +21,6 @@ func NewRigidBodyConfig() *RigidBodyConfig {
 	return &RigidBodyConfig{}
 }
 
-// ////////////////////// RigidBody (oimo/dynamics/rigidbody/RigidBody.go)
-type RigidBody struct{}
-
-func NewRigidBody(config *RigidBodyConfig) *RigidBody {
-	return &RigidBody{}
-}
-
-func (rb *RigidBody) AddShape(shape *Shape)                             {}
-func (rb *RigidBody) SetAngularVelocity(angularVelocity math32.Vector3) {}
-
 // ////////////////////// ShapeConfig
 type ShapeConfig struct {
 	Geom IGeometry
@@ -103,25 +93,6 @@ func NewCollisionMatrix() CollisionMatrix {
 
 // ////////////////////////// Contact
 type Contact struct{}
-
-// ///////////////////////// ContactManager
-type ContactManager struct {
-	numContacts     int
-	contactList     Contact
-	contactListLast Contact
-	contactPool     Contact
-
-	broadPhase      IBroadPhase
-	collisionMatrix CollisionMatrix
-}
-
-func NewContactManager(broadPhase IBroadPhase) *ContactManager {
-	cm := &ContactManager{}
-	cm.broadPhase = broadPhase
-	cm.collisionMatrix = NewCollisionMatrix()
-	cm.numContacts = 0
-	return cm
-}
 
 // ///////////////////////// Island
 type Island struct{}

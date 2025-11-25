@@ -29,6 +29,7 @@ type DemoMain struct {
 	keyState    *window.KeyState
 	cam         *camera.Camera
 	world       *World
+	dt          float64
 }
 
 func NewDemoMain() *DemoMain {
@@ -65,12 +66,19 @@ func NewDemoMain() *DemoMain {
 	dm.world = NewWorld(_BVH, nil)
 
 	// Init demos
+	dm.initBaseDemo()
 	dm.initBasicDemo()
 
 	// TEMP: orbit camera to see what's going on
 	camera.NewOrbitControl(dm.cam)
 
 	return &dm
+}
+
+func (dm *DemoMain) initBaseDemo() {
+	dm.cam.SetPosition(0, 5, 10)
+	dm.cam.LookAt(math32.NewVector3(0, 0, 0), math32.NewVector3(0, 1, 0))
+	dm.dt = 1 / 60.0
 }
 
 func (dm *DemoMain) initBasicDemo() {
@@ -107,6 +115,12 @@ func (dm *DemoMain) Update(dt float32) {
 	if dm.keyState.Pressed(window.KeyQ) {
 		dm.application.Exit()
 	}
+
+	// DemoBase: update() doesnt run when in demo
+	// DemoMain: loop() runs at 60fps (called from javascript)
+	// BasicDemo (currentDemo): nothing relevant
+	// currentDemo.update(): nothing relevant
+	dm.world.step(dm.dt)
 }
 
 func (dm *DemoMain) Render(render *renderer.Renderer) {
