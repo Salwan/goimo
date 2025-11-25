@@ -11,11 +11,6 @@ const (
 	DYNAMIC
 )
 
-// ////////////////////// World (oimo/dynamics/World.go)
-type World struct{}
-
-func (w *World) AddRigidBody(rigidBody *RigidBody) {}
-
 // ////////////////////// RigidBodyConfig
 type RigidBodyConfig struct {
 	Type     RigidBodyType
@@ -57,7 +52,6 @@ type IGeometry interface{}
 
 // ////////////////////// BoxGeometry
 type BoxGeometry struct {
-	IGeometry
 	HalfExtents math32.Vector3
 }
 
@@ -65,4 +59,104 @@ func NewBoxGeometry(halfExtents *math32.Vector3) *BoxGeometry {
 	return &BoxGeometry{
 		HalfExtents: *halfExtents,
 	}
+}
+
+// //////////////////////// Joint
+type Joint struct{}
+
+// ///////////////////////// BroadPhase
+type IBroadPhase interface{}
+
+type BroadPhase struct{}
+
+func NewBroadPhase() *BroadPhase {
+	return &BroadPhase{}
+}
+
+type BruteForceBroadPhase struct {
+	*BroadPhase
+}
+
+func NewBruteForceBroadPhase() *BruteForceBroadPhase {
+	return &BruteForceBroadPhase{
+		BroadPhase: NewBroadPhase(),
+	}
+}
+
+type BvhBroadPhase struct {
+	*BroadPhase
+}
+
+func NewBvhBroadPhase() *BvhBroadPhase {
+	return &BvhBroadPhase{
+		BroadPhase: NewBroadPhase(),
+	}
+}
+
+//////////////////////////// CollisionMatrix
+
+type CollisionMatrix struct{}
+
+func NewCollisionMatrix() CollisionMatrix {
+	return CollisionMatrix{}
+}
+
+// ////////////////////////// Contact
+type Contact struct{}
+
+// ///////////////////////// ContactManager
+type ContactManager struct {
+	numContacts     int
+	contactList     Contact
+	contactListLast Contact
+	contactPool     Contact
+
+	broadPhase      IBroadPhase
+	collisionMatrix CollisionMatrix
+}
+
+func NewContactManager(broadPhase IBroadPhase) *ContactManager {
+	cm := &ContactManager{}
+	cm.broadPhase = broadPhase
+	cm.collisionMatrix = NewCollisionMatrix()
+	cm.numContacts = 0
+	return cm
+}
+
+// ///////////////////////// Island
+type Island struct{}
+
+func NewIsland() *Island {
+	return &Island{}
+}
+
+// ///////////////////////// ConstraintSolver
+type ConstraintSolver struct{}
+
+// ///////////////////////// RayCastWrapper
+type RayCastWrapper struct{}
+
+func NewRayCastWrapper() *RayCastWrapper {
+	return &RayCastWrapper{}
+}
+
+// ///////////////////////// ConvexCastWrapper
+type ConvexCastWrapper struct{}
+
+func NewConvexCastWrapper() *ConvexCastWrapper {
+	return &ConvexCastWrapper{}
+}
+
+// ///////////////////////// AabbTestWrapper
+type AabbTestWrapper struct{}
+
+func NewAabbTestWrapper() *AabbTestWrapper {
+	return &AabbTestWrapper{}
+}
+
+// ///////////////////////// Pool
+type Pool struct{}
+
+func NewPool() *Pool {
+	return &Pool{}
 }

@@ -43,14 +43,15 @@ func NewDemoMain() *DemoMain {
 	dm.cam = camera.New(float32(dm.width) / float32(dm.height))
 	dm.cam.SetPosition(0, 5, 10)
 	dm.cam.LookAt(math32.NewVector3(0, 0, 0), math32.NewVector3(0, 1, 0))
+	dm.cam.SetNear(0.1)
+	dm.cam.SetFar(1000.0)
 	dm.root.Add(dm.cam)
 
 	dm.gs.ClearColor(0.1, 0.1, 0.1, 1.0)
 	dm.root.Add(helper.NewAxes(0.5))
 	dm.root.Add(helper.NewGrid(10.0, 1.0, &math32.Color{R: 0.2, G: 0.2, B: 0.2}))
 
-	camera.NewOrbitControl(dm.cam)
-
+	// App events
 	onResize := func(evname string, ev interface{}) {
 		dm.width, dm.height = dm.application.GetSize()
 		aspect_ratio := float32(dm.width) / float32(dm.height)
@@ -61,7 +62,13 @@ func NewDemoMain() *DemoMain {
 	dm.application.Subscribe(window.OnWindowSize, onResize)
 	onResize("", nil)
 
+	dm.world = NewWorld(_BVH, nil)
+
+	// Init demos
 	dm.initBasicDemo()
+
+	// TEMP: orbit camera to see what's going on
+	camera.NewOrbitControl(dm.cam)
 
 	return &dm
 }
