@@ -4,23 +4,6 @@ import "github.com/g3n/engine/math32"
 
 // Stubs for objects
 
-type RigidBodyType int
-
-const (
-	STATIC RigidBodyType = iota
-	DYNAMIC
-)
-
-// ////////////////////// RigidBodyConfig
-type RigidBodyConfig struct {
-	Type     RigidBodyType
-	Position math32.Vector3
-}
-
-func NewRigidBodyConfig() *RigidBodyConfig {
-	return &RigidBodyConfig{}
-}
-
 // ////////////////////// ShapeConfig
 type ShapeConfig struct {
 	Geom IGeometry
@@ -93,16 +76,6 @@ func NewCollisionMatrix() CollisionMatrix {
 
 // ////////////////////////// Contact
 type Contact struct{}
-
-// ///////////////////////// Island
-type Island struct{}
-
-func NewIsland() *Island {
-	return &Island{}
-}
-
-// ///////////////////////// ConstraintSolver
-type ConstraintSolver struct{}
 
 // ///////////////////////// RayCastWrapper
 type RayCastWrapper struct{}

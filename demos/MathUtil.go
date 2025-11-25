@@ -41,11 +41,71 @@ func (MathUtilNamespace) RandVec3In(min, max float32) math32.Vector3 {
 		Z: min + MathUtil.Rand()*(max-min)}
 }
 
+func (MathUtilNamespace) Sin(x float64) float64 {
+	return math.Sin(x)
+}
+
+func (MathUtilNamespace) Cos(x float64) float64 {
+	return math.Cos(x)
+}
+
 // Returns `Math.sqrt(x)`.
 func (MathUtilNamespace) Sqrt(x float64) float64 {
 	return math.Sqrt(x)
 }
 
-func (MathUtilNamespace) toFixed8(x float64) float64 {
+// M functions
+func (MathUtilNamespace) ToFixed8(x float64) float64 {
 	return math.Round(x*1e8) / 1e8
+}
+
+////////////////////////////////////////// Vec3
+
+// Multiply (scale) src1 by src2 and store in dst
+// dst = src1 * src2
+func (MathUtilNamespace) Vec3_scale(dst *Vec3, src1 *Vec3, src2 float64) {
+	*dst = src1.Scale(src2)
+}
+
+// Multiply (scale) src2 by src3, Add src1 to scaled src2, store in dst
+// dst = src1 + src2 * src3
+func (MathUtilNamespace) Vec3_addRhsScaled(dst *Vec3, src1 *Vec3, src2 *Vec3, src3 float64) {
+	dst.x = src1.x + src2.x*src3
+	dst.y = src1.y + src2.y*src3
+	dst.z = src1.z + src2.z*src3
+}
+
+// Multiply src1 by src2, store in dst
+// dst = src1 * src2
+func (MathUtilNamespace) Vec3_mulMat3(dst *Vec3, src1 *Vec3, src2 *Mat3) {
+	// LLM
+	// Load components
+	x, y, z := src1.x, src1.y, src1.z
+
+	// Compute temps (avoids aliasing issues)
+	tmpX := src2.e00*x + src2.e01*y + src2.e02*z
+	tmpY := src2.e10*x + src2.e11*y + src2.e12*z
+	tmpZ := src2.e20*x + src2.e21*y + src2.e22*z
+
+	// Store to dst
+	dst.x, dst.y, dst.z = tmpX, tmpY, tmpZ
+}
+
+// Calculate Dot product between src1 and src2
+func (MathUtilNamespace) Vec3_dot(src1 *Vec3, src2 *Vec3) float64 {
+	return src1.x*src2.x + src1.y*src2.y + src1.z*src2.z
+}
+
+// Adds src1 to src2, stores in dst
+func (MathUtilNamespace) Vec3_add(dst *Vec3, src1 *Vec3, src2 *Vec3) {
+	dst.x = src1.x + src2.x
+	dst.y = src1.y + src2.y
+	dst.z = src1.z + src2.z
+}
+
+// /////////////////////////////////////// Quat
+
+// Creates Quat from x,y,z of src1 Vec3 and w from src2 float
+func (MathUtilNamespace) Quat_fromVec3AndFloat(dst *Quat, src1 *Vec3, src2 float64) {
+	dst.x, dst.y, dst.z, dst.w = src1.x, src1.y, src1.z, src2
 }

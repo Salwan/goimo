@@ -95,10 +95,35 @@ func (w *World) solveIslands() {
 	// Profile hook: dynamicsTime
 	// wake up all rigid bodies if sleeping is disabled
 	if Settings.DisableSleeping {
-		//b := w.rigidBodyList
-		// iterate rigidBodyList til last and set
-		// b.sleeping = false
-		// b.sleepTime = 0
+		for b := w.rigidBodyList; b != nil; b = b.next {
+			b.sleeping = false
+			b.sleepTime = 0
+		}
+	}
+
+	// expand array size if needed
+	if len(w.rigidBodyStack) < w.numRigidBodies {
+		newStackSize := len(w.rigidBodyStack) << 1
+		for newStackSize < w.numRigidBodies {
+			newStackSize <<= 1
+		}
+		w.rigidBodyStack = make([]*RigidBody, newStackSize)
+	}
+
+	// build and solve islands
+	w.numIslands = 0
+	w.island.SetGravity(&w.gravity)
+	w.numSolversInIslands = 0
+	for b := w.rigidBodyList; b != nil; b = b.next {
+		if b.addedToIsland || b.sleeping || b._type == _STATIC {
+			// never be the base of an island
+			continue
+		}
+		if b.IsAlone() {
+			w.island.StepSingleRigidBody(w.timeStep, b)
+			w.numIslands++
+			continue
+		}
 	}
 
 	// TODO
