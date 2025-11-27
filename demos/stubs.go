@@ -1,36 +1,17 @@
 package demos
 
-import "github.com/g3n/engine/math32"
-
 // Stubs for objects
-
-// ////////////////////// ShapeConfig
-type ShapeConfig struct {
-	Geom IGeometry
-}
-
-func NewShapeConfig() *ShapeConfig {
-	return &ShapeConfig{}
-}
-
-// ////////////////////// Shape
-type Shape struct{}
-
-func NewShape(config *ShapeConfig) *Shape {
-	return &Shape{}
-}
-
-// ////////////////////// Geometry
-type IGeometry interface{}
 
 // ////////////////////// BoxGeometry
 type BoxGeometry struct {
-	HalfExtents math32.Vector3
+	*Geometry
+	HalfExtents Vec3
 }
 
-func NewBoxGeometry(halfExtents *math32.Vector3) *BoxGeometry {
+func NewBoxGeometry(halfExtents Vec3) *BoxGeometry {
 	return &BoxGeometry{
-		HalfExtents: *halfExtents,
+		Geometry:    NewGeometry(_BOX),
+		HalfExtents: halfExtents,
 	}
 }
 
@@ -38,21 +19,13 @@ func NewBoxGeometry(halfExtents *math32.Vector3) *BoxGeometry {
 type Joint struct{}
 
 // ///////////////////////// BroadPhase
-type IBroadPhase interface{}
-
-type BroadPhase struct{}
-
-func NewBroadPhase() *BroadPhase {
-	return &BroadPhase{}
-}
-
 type BruteForceBroadPhase struct {
 	*BroadPhase
 }
 
 func NewBruteForceBroadPhase() *BruteForceBroadPhase {
 	return &BruteForceBroadPhase{
-		BroadPhase: NewBroadPhase(),
+		BroadPhase: NewBroadPhase(_BRUTE_FORCE),
 	}
 }
 
@@ -62,7 +35,7 @@ type BvhBroadPhase struct {
 
 func NewBvhBroadPhase() *BvhBroadPhase {
 	return &BvhBroadPhase{
-		BroadPhase: NewBroadPhase(),
+		BroadPhase: NewBroadPhase(_BVH),
 	}
 }
 

@@ -120,7 +120,7 @@ func (w *World) solveIslands() {
 			continue
 		}
 		if b.IsAlone() {
-			w.island.StepSingleRigidBody(w.timeStep, b)
+			w.island.StepSingleRigidBody(*w.timeStep, b)
 			w.numIslands++
 			continue
 		}

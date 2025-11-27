@@ -21,7 +21,7 @@ func NewMat3() *Mat3 {
 }
 
 // Sets all elements at once and returns `this`.
-func (m *Mat3) InitMat3(e00, e01, e02 float64,
+func (m *Mat3) Set(e00, e01, e02 float64,
 	e10, e11, e12 float64,
 	e20, e21, e22 float64) *Mat3 {
 	m.e00, m.e01, m.e02 = e00, e01, e02
@@ -32,7 +32,7 @@ func (m *Mat3) InitMat3(e00, e01, e02 float64,
 
 // Sets this matrix to identity matrix and returns `this`.
 func (m *Mat3) Identity() *Mat3 {
-	return m.InitMat3(
+	return m.Set(
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1,

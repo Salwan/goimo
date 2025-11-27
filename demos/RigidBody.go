@@ -119,14 +119,13 @@ func (rb *RigidBody) Integrate(dt float64) {
 		// update the transform
 		rb.applyTranslation(&translation)
 		rb.applyRotation(&rotation)
-		// TODO
+
 	case _STATIC:
 		rb.vel.Zero()
 		rb.angVel.Zero()
 		rb.pseudoVel.Zero()
 		rb.angPseudoVel.Zero()
 	}
-	// TODO
 }
 
 func (rb *RigidBody) applyTranslation(translation *Vec3) {
@@ -165,9 +164,12 @@ func (rb *RigidBody) applyRotation(rotation *Vec3) {
 	MathUtil.Mat3_fromQuat(&rb.transform.rotation, &q)
 
 	// update inertia tensor
-	// updateInvInertia()
+	rb.updateInvInertia()
+}
 
-	// TODO
+func (rb *RigidBody) updateInvInertia() {
+	MathUtil.Mat3_transformInertia(&rb.invInertia, &rb.invLocalInertia, &rb.transform.rotation)
+	MathUtil.Mat3_scaleRows(&rb.invInertia, &rb.invInertia, rb.rotFactor.x, rb.rotFactor.y, rb.rotFactor.z)
 }
 
 func (rb *RigidBody) IsSleepy() bool {
@@ -181,7 +183,9 @@ func (rb *RigidBody) IsAlone() bool {
 }
 
 func (rb *RigidBody) SyncShapes() {
-	// TODO
+	for s := rb.shapeList; s != nil; s = s.next {
+		s.sync(&rb.pTransform, &rb.transform)
+	}
 }
 
 func (rb *RigidBody) AddShape(shape *Shape)                             {}

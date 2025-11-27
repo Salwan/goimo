@@ -16,7 +16,7 @@ func NewVec3(X, Y, Z float64) *Vec3 {
 }
 
 // Sets all values at once and returns `this`.
-func (v *Vec3) Init(x, y, z float64) *Vec3 {
+func (v *Vec3) Set(x, y, z float64) *Vec3 {
 	v.x, v.y, v.z = x, y, z
 	return v
 }
@@ -259,5 +259,5 @@ func (v *Vec3) NegateEq() *Vec3 {
 
 // Returns the string representation of the vector.
 func (v *Vec3) String() string {
-	return fmt.Sprintf("Vec3[%f, %f, %f]", MathUtil.toFixed8(v.x), MathUtil.toFixed8(v.y), MathUtil.toFixed8(v.z))
+	return fmt.Sprintf("Vec3[%f, %f, %f]", MathUtil.ToFixed8(v.x), MathUtil.ToFixed8(v.y), MathUtil.ToFixed8(v.z))
 }

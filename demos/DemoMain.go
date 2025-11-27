@@ -85,18 +85,18 @@ func (dm *DemoMain) initBasicDemo() {
 	dm.cam.SetPosition(0, 7, 9)
 	dm.cam.LookAt(math32.NewVector3(0, 2, 0), math32.NewVector3(0, 1, 0))
 
-	thickness := float32(0.5)
-	OimoUtil.AddBox(dm.world, &math32.Vector3{X: 0, Y: -thickness, Z: 0},
-		&math32.Vector3{X: 7, Y: thickness, Z: 7}, true)
+	thickness := 0.5
+	OimoUtil.AddBox(dm.world, &Vec3{0, -thickness, 0},
+		&Vec3{7, thickness, 7}, true)
 
 	w, h, n := 2, 2, 5
-	sp, size := float32(0.61), float32(0.3)
+	sp, size := 0.61, 0.3
 	for i := range n {
 		for j := -w; j <= w+1; j++ {
 			for k := -h; k <= h+1; k++ {
-				pos := math32.Vector3{X: float32(j) * sp, Y: size + float32(i)*size*3, Z: float32(k) * sp}
+				pos := Vec3{float64(j) * sp, size + float64(i)*size*3, float64(k) * sp}
 				box := OimoUtil.AddBox(dm.world, &pos,
-					&math32.Vector3{X: size, Y: size, Z: size}, false)
+					&Vec3{size, size, size}, false)
 				box.SetAngularVelocity(MathUtil.RandVec3In(-0.05, 0.05))
 			}
 		}
