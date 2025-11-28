@@ -5,7 +5,7 @@ package demos
 // Utilities to do single and double linked list on Oimo types via next and prev pointers.
 
 // Current Go has hard limits on generic constraints:
-// - generics cannot describe properties in any way, only methods via interface, There's a proposal but looks far in the future: https://github.com/golang/go/issues/51259
+// - generics cannot describe properties in any way, only methods via interface, Theres a proposal but looks far in the future: https://github.com/golang/go/issues/51259
 // - generics cannot describe a nullable constraint.
 // - generics cannot describe a pointer constraint.
 
@@ -42,12 +42,76 @@ func SingleList_pick[N interface {
 
 ///////////////////////////////////////////// Double List
 
-// TODO
+type IDoubleLinkNode[N any] interface {
+	ISingleLinkNode[N]
+	GetPrev() N
+	SetPrev(N)
+}
 
-// list_foreach(base:Expr, next:Expr, loop:Expr)
+// Visit all nodes in the list calling callback(n) on each
+func DoubleList_foreach[N interface {
+	IDoubleLinkNode[N]
+	comparable
+}](head *N, callback func(n N)) {
+	list := *head
+	var zero N
+	for n := list; n != zero; n = n.GetNext() {
+		callback(n)
+	}
+}
 
-// list_push(first:Expr, last:Expr, prev:Expr, next:Expr, e:Expr)
+// Push node to end of list
+func DoubleList_push[N interface {
+	IDoubleLinkNode[N]
+	comparable
+}](head *N, tail *N, n N) {
+	var zero N
+	if *head == zero {
+		*head = n
+		*tail = *head
+	} else {
+		(*tail).SetNext(n)
+		n.SetPrev(*tail)
+		*tail = n
+	}
+}
 
-// list_addFirst(first:Expr, last:Expr, prev:Expr, next:Expr, e:Expr)
+// Push node to begining of list
+func DoubleList_addFirst[N interface {
+	IDoubleLinkNode[N]
+	comparable
+}](head *N, tail *N, n N) {
+	var zero N
+	if *head == zero {
+		*head = n
+		*tail = n
+	} else {
+		(*head).SetPrev(n)
+		n.SetNext(*head)
+		*head = n
+	}
+}
 
-// list_remove(first:Expr, last:Expr, prev:Expr, next:Expr, e:Expr)
+// Remove given node from list
+func DoubleList_remove[N interface {
+	IDoubleLinkNode[N]
+	comparable
+}](head *N, tail *N, n N) {
+	var zero N
+	prev := n.GetPrev()
+	next := n.GetNext()
+	if prev != zero {
+		prev.SetNext(next)
+	}
+	if next != zero {
+		next.SetPrev(prev)
+	}
+	if n == *head {
+		*head = (*head).GetNext()
+	}
+	if n == *tail {
+		*tail = (*tail).GetPrev()
+	}
+	n.SetNext(zero)
+	n.SetPrev(zero)
+}
