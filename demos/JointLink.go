@@ -11,41 +11,10 @@ type JointLink struct {
 	other *RigidBody
 }
 
+func NewJointLink(joint *Joint) *JointLink {
+	return &JointLink{
+		joint: joint,
+	}
+}
+
 // TODO
-// @:dox(hide)
-// public function new(joint:Joint) {
-// 	_joint = joint;
-// }
-
-// /**
-// 	* Returns the contact the rigid body is attached to.
-// 	*/
-// public function getContact():Joint {
-// 	return _joint;
-// }
-
-// /**
-// 	* Returns the other rigid body attached to the constraint. This provides a quick access
-// 	* from a rigid body to the other one attached to the constraint.
-// 	*/
-// public function getOther():RigidBody {
-// 	return _other;
-// }
-
-// /**
-// 	* Returns the previous joint link in the rigid body.
-// 	*
-// 	* If the previous one does not exist, `null` will be returned.
-// 	*/
-// public function getPrev():JointLink {
-// 	return _prev;
-// }
-
-// /**
-// 	* Returns the next joint link in the rigid body.
-// 	*
-// 	* If the previous one does not exist, `null` will be returned.
-// 	*/
-// public function getNext():JointLink {
-// 	return _next;
-// }

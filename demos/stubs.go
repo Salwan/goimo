@@ -15,9 +15,6 @@ func NewBoxGeometry(halfExtents Vec3) *BoxGeometry {
 	}
 }
 
-// //////////////////////// Joint
-type Joint struct{}
-
 // ///////////////////////// BroadPhase
 type BruteForceBroadPhase struct {
 	*BroadPhase
@@ -46,9 +43,6 @@ type CollisionMatrix struct{}
 func NewCollisionMatrix() CollisionMatrix {
 	return CollisionMatrix{}
 }
-
-// ////////////////////////// Contact
-type Contact struct{}
 
 // ///////////////////////// RayCastWrapper
 type RayCastWrapper struct{}

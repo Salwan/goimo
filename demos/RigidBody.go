@@ -4,8 +4,7 @@ import "github.com/g3n/engine/math32"
 
 // ////////////////////// RigidBody
 // (oimo/dynamics/rigidbody/RigidBody.go)
-// A rigid body. To add a rigid body to a physics world, create a `RigidBody` instance, create and add shapes via `RigidBody.addShape`, and add the rigid body to the physics world through `World.addRigidBody`. Rigid bodies have three motion types: dynamic, static, and kinematic. See `RigidBodyType` for details of motion types.
-
+// A rigid body. To add a rigid body to a physics world, create a `RigidBody` instance, create and add shapes via `RigidBody.addShape`, and add the rigid body to the physics world through `World.addRigidBody`. Rigid bodies have three motion types: dynamic, static, and kinematic. See `RigidBodyType` for details of motion types. (size>64)
 type RigidBody struct {
 	next *RigidBody
 	prev *RigidBody
@@ -193,4 +192,10 @@ func (rb *RigidBody) SetAngularVelocity(angularVelocity math32.Vector3) {}
 func (rb *RigidBody) Sleep() {
 	rb.sleeping = true
 	rb.sleepTime = 0
+}
+
+func (rb *RigidBody) GetLocalPointTo(worldPoint Vec3, localPoint *Vec3) {
+	v := worldPoint.Sub(rb.transform.position)
+	MathUtil.Vec3_mulMat3Transposed(&v, &v, &rb.transform.rotation)
+	*localPoint = v
 }

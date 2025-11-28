@@ -26,7 +26,7 @@ type World struct {
 	timeStep            *TimeStep
 	island              *Island
 	rigidBodyStack      []*RigidBody
-	solversInIslands    []*ConstraintSolver
+	solversInIslands    []IConstraintSolver
 	numSolversInIslands int
 	rayCastWrapper      *RayCastWrapper
 	convexCastWrapper   *ConvexCastWrapper
@@ -62,7 +62,7 @@ func NewWorld(broadPhaseType BroadPhaseType, gravity *Vec3) *World {
 	w.aabbTestWrapper = NewAabbTestWrapper()
 
 	w.island = NewIsland()
-	w.solversInIslands = make([]*ConstraintSolver, Settings.IslandInitialConstraintArraySize)
+	w.solversInIslands = make([]IConstraintSolver, Settings.IslandInitialConstraintArraySize)
 	w.rigidBodyStack = make([]*RigidBody, Settings.IslandInitialRigidBodyArraySize)
 
 	w.timeStep = NewTimeStep()
@@ -124,8 +124,67 @@ func (w *World) solveIslands() {
 			w.numIslands++
 			continue
 		}
+
+		w.buildIsland(b)
 	}
 
+	// TODO
+	panic("not impl")
+}
+
+func (w *World) buildIsland(base *RigidBody) {
+	// begin DFS
+	stackCount := 1
+	w.island.AddRigidBody(base)
+	w.rigidBodyStack[0] = base
+
+	for stackCount > 0 {
+		// pop a rigid body
+		stackCount--
+		rb := w.rigidBodyStack[stackCount]
+		w.rigidBodyStack[stackCount] = nil
+
+		// stop searching deeper
+		if rb._type == _STATIC {
+			continue
+		}
+
+		// searching contacts
+		for cl := rb.contactLinkList; cl != nil; cl = cl.next {
+			// ignore if not touching
+			cc := cl.contact.contactConstraint
+			ccs := cl.contact.contactConstraint.solver
+			if cc.isTouching() && !ccs.(*ConstraintSolver).addedToIsland {
+
+				// add to constraint array (to clear island flag later)
+				if len(w.solversInIslands) == w.numSolversInIslands {
+					w.solversInIslands = Array_expand(w.solversInIslands)
+				}
+				w.solversInIslands[w.numSolversInIslands] = ccs
+				w.numSolversInIslands++
+
+				// add to island
+				w.island.AddConstraintSolver(ccs, cc.positionCorrectionAlgorithm)
+
+				// push the other rigid body if not added
+				other := cl.other
+				if !other.addedToIsland {
+					w.island.AddRigidBody(other)
+					w.rigidBodyStack[stackCount] = other
+					stackCount++
+				}
+			}
+		}
+
+		// searching joints
+		for jl := rb.jointLinkList; jl != nil; jl = jl.next {
+			j := jl.joint
+			js := j.solver
+			if !js.(*ConstraintSolver).addedToIsland {
+
+			}
+		}
+	}
 	// TODO
 }
 

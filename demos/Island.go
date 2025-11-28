@@ -12,23 +12,23 @@ type Island struct {
 
 	// all the constraint solvers
 	numSolvers int
-	solvers    []*ConstraintSolver
+	solvers    []IConstraintSolver
 
 	// the constraint solvers use split impulse for position part
 	numSolversSi int
-	solversSi    []*ConstraintSolver
+	solversSi    []IConstraintSolver
 
 	// the constraint solvers use nonlinear Gauss-Seidel for position part
 	numSolversNgs int
-	solversNgs    []*ConstraintSolver
+	solversNgs    []IConstraintSolver
 }
 
 func NewIsland() *Island {
 	return &Island{
 		rigidBodies: make([]*RigidBody, Settings.IslandInitialRigidBodyArraySize),
-		solvers:     make([]*ConstraintSolver, Settings.IslandInitialConstraintArraySize),
-		solversSi:   make([]*ConstraintSolver, Settings.IslandInitialConstraintArraySize),
-		solversNgs:  make([]*ConstraintSolver, Settings.IslandInitialConstraintArraySize),
+		solvers:     make([]IConstraintSolver, Settings.IslandInitialConstraintArraySize),
+		solversSi:   make([]IConstraintSolver, Settings.IslandInitialConstraintArraySize),
+		solversNgs:  make([]IConstraintSolver, Settings.IslandInitialConstraintArraySize),
 	}
 }
 
@@ -84,5 +84,46 @@ func (island *Island) StepSingleRigidBody(timeStep TimeStep, rb *RigidBody) {
 		}
 		rb.Integrate(dt)
 		rb.SyncShapes()
+	}
+}
+
+func (island *Island) AddRigidBody(rigidBody *RigidBody) {
+	if island.numRigidBodies == len(island.rigidBodies) {
+		island.rigidBodies = Array_expand(island.rigidBodies)
+	}
+	rigidBody.addedToIsland = true
+	island.rigidBodies[island.numRigidBodies] = rigidBody
+	island.numRigidBodies++
+}
+
+func (island *Island) _addConstraintSolverSI(solver IConstraintSolver) {
+	if island.numSolversSi == len(island.solversSi) {
+		island.solversSi = Array_expand(island.solversSi)
+	}
+	island.solversSi[island.numSolversSi] = solver
+	island.numSolversSi++
+}
+
+func (island *Island) _addConstraintSolverNgs(solver IConstraintSolver) {
+	if island.numSolversNgs == len(island.solversNgs) {
+		island.solversNgs = Array_expand(island.solversNgs)
+	}
+	island.solversNgs[island.numSolversNgs] = solver
+	island.numSolversNgs++
+}
+
+func (island *Island) AddConstraintSolver(solver IConstraintSolver, positionCorrection PositionCorrectionAlgorithm) {
+	if island.numSolvers == len(island.solvers) {
+		island.solvers = Array_expand(island.solvers)
+	}
+	solver.(*ConstraintSolver).addedToIsland = true
+	island.solvers[island.numSolvers] = solver
+	island.numSolvers++
+
+	if positionCorrection == _SPLIT_IMPULSE {
+		island._addConstraintSolverSI(solver)
+	}
+	if positionCorrection == _NGS {
+		island._addConstraintSolverNgs(solver)
 	}
 }

@@ -2,8 +2,7 @@ package demos
 
 // ////////////////////// Shape
 // (oimo/dynamics/rigidbody/Shape.go)
-// A shape is a component of a rigid body. It attaches a collision geometry to the parent rigid body with some physical properties such as coefficients of friction and restitution. The collision geometry can locally be transformed relative to the parent rigid body's center of gravity.
-
+// A shape is a component of a rigid body. It attaches a collision geometry to the parent rigid body with some physical properties such as coefficients of friction and restitution. The collision geometry can locally be transformed relative to the parent rigid body's center of gravity. (size>64)
 type Shape struct {
 	id int
 
@@ -67,7 +66,4 @@ func (sh *Shape) sync(tf1 *Transform, tf2 *Transform) {
 		MathUtil.Vec3_sub(&sh.displacement, &sh.transform.position, &sh.pTransform.position)
 		sh.rigidBody.world.broadPhase.moveProxy(sh.proxy, &sh.aabb, sh.displacement)
 	}
-
-	// TODO
-	panic("not impl")
 }
