@@ -14,3 +14,11 @@ type ProxyPair struct {
 func NewProxyPair() *ProxyPair {
 	return &ProxyPair{}
 }
+
+func (pp *ProxyPair) GetNext() *ProxyPair {
+	return pp.next
+}
+
+func (pp *ProxyPair) SetNext(next *ProxyPair) {
+	pp.next = next
+}

@@ -13,12 +13,12 @@ type BroadPhase struct {
 	proxyList     *Proxy
 	proxyListLast *Proxy
 
-	proxyPairList ProxyPair
+	proxyPairList *ProxyPair
 	incremental   bool
 
 	testCount int
 
-	proxyPairPool ProxyPair
+	proxyPairPool *ProxyPair
 	idCount       int
 
 	convexSweep *ConvexSweepGeometry
@@ -42,10 +42,10 @@ func NewBroadPhase(_type_ BroadPhaseType) *BroadPhase {
 // Private
 
 func (bp *BroadPhase) pickAndPushProxyPair(p1 *Proxy, p2 *Proxy) {
-	// pp := ListUtil.SingleList_pick(bp.proxyPairPool, bp.next)
-	// ListUtil.SingleList_addFirst(bp.proxyPairList, bp.next, pp)
-	// pp.p1 = p1
-	// pp.p2 = p2
+	pp := SingleList_pick(&bp.proxyPairPool, NewProxyPair)
+	SingleList_addFirst(&bp.proxyPairList, pp)
+	pp.p1 = p1
+	pp.p2 = p2
 }
 
 // Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
