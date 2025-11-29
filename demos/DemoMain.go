@@ -8,6 +8,7 @@ import (
 	"github.com/g3n/engine/core"
 	"github.com/g3n/engine/gls"
 	"github.com/g3n/engine/gui"
+	"github.com/g3n/engine/light"
 	"github.com/g3n/engine/math32"
 	"github.com/g3n/engine/renderer"
 	"github.com/g3n/engine/util/helper"
@@ -30,6 +31,7 @@ type DemoMain struct {
 	cam         *camera.Camera
 	world       *World
 	dt          float64
+	demoBoxes   []*DemoBox
 }
 
 func NewDemoMain() *DemoMain {
@@ -51,6 +53,10 @@ func NewDemoMain() *DemoMain {
 	dm.gs.ClearColor(0.1, 0.1, 0.1, 1.0)
 	dm.root.Add(helper.NewAxes(0.5))
 	dm.root.Add(helper.NewGrid(10.0, 1.0, &math32.Color{R: 0.2, G: 0.2, B: 0.2}))
+
+	dirLight := light.NewDirectional(&math32.Color{R: 1, G: 1, B: 1}, 1.0)
+	dirLight.SetPosition(0.2, 0.8, 0.7)
+	dm.root.Add(dirLight)
 
 	// App events
 	onResize := func(evname string, ev interface{}) {
@@ -86,8 +92,10 @@ func (dm *DemoMain) initBasicDemo() {
 	dm.cam.LookAt(math32.NewVector3(0, 2, 0), math32.NewVector3(0, 1, 0))
 
 	thickness := 0.5
-	OimoUtil.AddBox(dm.world, &Vec3{0, -thickness, 0},
+	_, gground := OimoUtil.AddBox(dm.world, &Vec3{0, -thickness, 0},
 		&Vec3{7, thickness, 7}, true)
+	dm.root.Add(gground)
+	dm.demoBoxes = append(dm.demoBoxes, gground)
 
 	w, h, n := 2, 2, 5
 	sp, size := 0.61, 0.3
@@ -95,9 +103,11 @@ func (dm *DemoMain) initBasicDemo() {
 		for j := -w; j <= w+1; j++ {
 			for k := -h; k <= h+1; k++ {
 				pos := Vec3{float64(j) * sp, size + float64(i)*size*3, float64(k) * sp}
-				box := OimoUtil.AddBox(dm.world, &pos,
+				box, gbox := OimoUtil.AddBox(dm.world, &pos,
 					&Vec3{size, size, size}, false)
 				box.SetAngularVelocity(MathUtil.RandVec3In(-0.05, 0.05))
+				dm.root.Add(gbox)
+				dm.demoBoxes = append(dm.demoBoxes, gbox)
 			}
 		}
 	}
@@ -114,6 +124,11 @@ func (dm *DemoMain) Run() {
 func (dm *DemoMain) Update(dt float32) {
 	if dm.keyState.Pressed(window.KeyQ) {
 		dm.application.Exit()
+	}
+
+	// synchronize boxes
+	for _, b := range dm.demoBoxes {
+		b.sync()
 	}
 
 	// DemoBase: update() doesnt run when in demo
