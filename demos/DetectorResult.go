@@ -30,4 +30,27 @@ func NewDetectorResult() *DetectorResult {
 	return dr
 }
 
-// TODO
+// --- public ---
+
+// Returns the maximum depth of the result points. Returns `0.0` if no result points are available.
+func (dr *DetectorResult) GetMaxDepth() float64 {
+	max := 0.0
+	for i := range dr.numPoints {
+		if dr.points[i].depth > max {
+			max = dr.points[i].depth
+		}
+	}
+	return max
+}
+
+// Cleans up the result data.
+func (dr *DetectorResult) Clear() {
+	dr.numPoints = 0
+	for _, p := range dr.points {
+		p.position1.Zero()
+		p.position2.Zero()
+		p.depth = 0
+		p.id = 0
+	}
+	dr.normal.Zero()
+}

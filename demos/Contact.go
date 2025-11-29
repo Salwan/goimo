@@ -18,7 +18,7 @@ type Contact struct {
 	b2 *RigidBody
 
 	// detector data
-	detector           *Detector
+	detector           IDetector
 	cachedDetectorData *CachedDetectorData
 	detectorResult     *DetectorResult
 
@@ -49,6 +49,33 @@ func NewContact() *Contact {
 	return c
 }
 
+func (c *Contact) GetNext() *Contact {
+	return c.next
+}
+
+func (c *Contact) SetNext(x *Contact) {
+	c.next = x
+}
+
+func (c *Contact) GetPrev() *Contact {
+	return c.prev
+}
+
+func (c *Contact) SetPrev(x *Contact) {
+	c.prev = x
+}
+
+func (c *Contact) attachLinks() {
+	DoubleList_push(&c.b1.contactLinkList, &c.b1.contactLinkListLast, c.link1)
+	DoubleList_push(&c.b2.contactLinkList, &c.b2.contactLinkListLast, c.link2)
+	c.b1.numContactLinks++
+	c.b2.numContactLinks++
+	c.link1.other = c.b2
+	c.link2.other = c.b1
+	c.link1.contact = c
+	c.link2.contact = c
+}
+
 func (c *Contact) sendPostSolve() {
 	cc1 := c.s1.contactCallback
 	cc2 := c.s2.contactCallback
@@ -65,6 +92,19 @@ func (c *Contact) sendPostSolve() {
 
 func (c *Contact) postSolve() {
 	c.sendPostSolve()
+}
+
+func (c *Contact) attach(s1, s2 *Shape, detector IDetector) {
+	c.s1 = s1
+	c.s2 = s2
+	c.b1 = s1.rigidBody
+	c.b2 = s2.rigidBody
+	c.touching = false
+	c.attachLinks()
+
+	c.detector = detector
+
+	c.contactConstraint.attach(s1, s2)
 }
 
 // TODO

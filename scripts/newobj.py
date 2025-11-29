@@ -11,7 +11,7 @@ TEMPLATE = """package demos
 // {Desc}
 
 type {Name} struct {{
-\t//TODO
+\t// TODO
 }}
 
 func New{Name}() *{Name} {{

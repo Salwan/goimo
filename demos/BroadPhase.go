@@ -4,7 +4,12 @@ package demos
 // (oimo/dynamics/rigidbody/Shape.go)
 // The abstract class of a broad-phase collision detection algorithm.
 type IBroadPhase interface {
+	// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
 	moveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3)
+
+	// Collects overlapping pairs of the proxies and put them into a linked list. The linked list can be get through `BroadPhase.getProxyPairList` method.
+	// Note that in order to collect pairs, the broad-phase algorithm requires to be informed of movements of proxies through `BroadPhase.moveProxy` method.
+	collectPairs()
 }
 
 type BroadPhase struct {
@@ -48,8 +53,11 @@ func (bp *BroadPhase) pickAndPushProxyPair(p1 *Proxy, p2 *Proxy) {
 	pp.p2 = p2
 }
 
-// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
 func (bp *BroadPhase) moveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3) {}
+
+func (bp *BroadPhase) collectPairs() {}
+
+// TODO
 
 // /////////////////////////////////////////// ConvexSweepGeometry
 type ConvexSweepGeometry struct {
