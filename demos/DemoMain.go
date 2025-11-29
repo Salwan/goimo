@@ -103,8 +103,7 @@ func (dm *DemoMain) initBasicDemo() {
 		for j := -w; j <= w+1; j++ {
 			for k := -h; k <= h+1; k++ {
 				pos := Vec3{float64(j) * sp, size + float64(i)*size*3, float64(k) * sp}
-				box, gbox := OimoUtil.AddBox(dm.world, &pos,
-					&Vec3{size, size, size}, false)
+				box, gbox := OimoUtil.AddBox(dm.world, &pos, &Vec3{size, size, size}, false)
 				box.SetAngularVelocity(MathUtil.RandVec3In(-0.05, 0.05))
 				dm.root.Add(gbox)
 				dm.demoBoxes = append(dm.demoBoxes, gbox)
