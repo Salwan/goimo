@@ -11,7 +11,6 @@ import (
 	"github.com/g3n/engine/light"
 	"github.com/g3n/engine/math32"
 	"github.com/g3n/engine/renderer"
-	"github.com/g3n/engine/util/helper"
 	"github.com/g3n/engine/window"
 )
 
@@ -50,12 +49,16 @@ func NewDemoMain() *DemoMain {
 	dm.cam.SetFar(1000.0)
 	dm.root.Add(dm.cam)
 
-	dm.gs.ClearColor(0.1, 0.1, 0.1, 1.0)
-	dm.root.Add(helper.NewAxes(0.5))
-	dm.root.Add(helper.NewGrid(10.0, 1.0, &math32.Color{R: 0.2, G: 0.2, B: 0.2}))
+	dm.gs.ClearColor(0.02, 0.02, 0.02, 1.0)
+	//dm.root.Add(helper.NewAxes(0.5))
+	//dm.root.Add(helper.NewGrid(10.0, 1.0, &math32.Color{R: 0.2, G: 0.2, B: 0.2}))
+
+	backLight := light.NewDirectional(&math32.Color{R: 1, G: 1, B: 1}, 0.25)
+	backLight.SetPosition(-0.4, 0.8, -0.8)
+	dm.root.Add(backLight)
 
 	dirLight := light.NewDirectional(&math32.Color{R: 1, G: 1, B: 1}, 1.0)
-	dirLight.SetPosition(0.2, 0.8, 0.7)
+	dirLight.SetPosition(0.5, 0.8, 0.7)
 	dm.root.Add(dirLight)
 
 	// App events
@@ -134,7 +137,7 @@ func (dm *DemoMain) Update(dt float32) {
 	// DemoMain: loop() runs at 60fps (called from javascript)
 	// BasicDemo (currentDemo): nothing relevant
 	// currentDemo.update(): nothing relevant
-	dm.world.step(dm.dt)
+	dm.world.step(1.0 / 60.0) //dm.dt)
 }
 
 func (dm *DemoMain) Render(render *renderer.Renderer) {

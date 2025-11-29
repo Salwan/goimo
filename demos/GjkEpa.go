@@ -411,14 +411,14 @@ func (ge *GjkEpa) computeWitnessPoint2(addMargin bool) {
 
 // Performs ray casting against the convex geometry `c` with transform `tf`. Returns `true` and sets the result information to `hit` if the line segment from `begin` to `end` intersects the convex geometry. Otherwise returns `false`.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
-func (ge *GjkEpa) RayCast(c *ConvexGeometry, tf *Transform, begin, end *Vec3, hit *RayCastHit) bool {
-	ge.tf1.position = *begin
+func (ge *GjkEpa) RayCast(c *ConvexGeometry, tf *Transform, begin, end Vec3, hit *RayCastHit) bool {
+	ge.tf1.position = begin
 
 	// This temp ref looks like no-op to me, but I'm copying as is
 	tl1 := &ge.tl1
 	tl2 := &ge.tl2
 
-	MathUtil.Vec3_sub(tl1, end, begin)
+	MathUtil.Vec3_sub(tl1, &end, &begin)
 	tl2.Zero()
 
 	return ge.convexCastImpl(nil, c, &ge.tempTransform, tf, tl1, tl2, hit)

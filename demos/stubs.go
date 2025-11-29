@@ -2,19 +2,6 @@ package demos
 
 // Stubs for objects
 
-// ////////////////////// BoxGeometry
-type BoxGeometry struct {
-	*Geometry
-	HalfExtents Vec3
-}
-
-func NewBoxGeometry(halfExtents Vec3) *BoxGeometry {
-	return &BoxGeometry{
-		Geometry:    NewGeometry(_BOX),
-		HalfExtents: halfExtents,
-	}
-}
-
 // ///////////////////////// BroadPhase
 type BruteForceBroadPhase struct {
 	*BroadPhase

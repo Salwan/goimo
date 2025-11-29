@@ -54,6 +54,15 @@ func (MathUtilNamespace) Sqrt(x float64) float64 {
 	return math.Sqrt(x)
 }
 
+// Returns -1 if x<0, 1 otherwise
+func (MathUtilNamespace) Sign(x float64) float64 {
+	if x < 0 {
+		return -1
+	} else {
+		return 1
+	}
+}
+
 // M functions
 func (MathUtilNamespace) ToFixed8(x float64) float64 {
 	return math.Round(x*1e8) / 1e8
@@ -155,6 +164,13 @@ func (MathUtilNamespace) Vec3_max(dst *Vec3, src1 *Vec3, src2 *Vec3) {
 	} else {
 		dst.z = src2.z
 	}
+}
+
+// set all components to absolute value
+func (MathUtilNamespace) Vec3_abs(dst *Vec3, src *Vec3) {
+	dst.x = math.Abs(src.x)
+	dst.y = math.Abs(src.y)
+	dst.z = math.Abs(src.z)
 }
 
 // /////////////////////////////////////// Quat
@@ -314,6 +330,15 @@ func (MathUtilNamespace) Mat3_scaleCols(dst *Mat3, src *Mat3, sx, sy, sz float64
 	dst.e20 = src.e20 * sx
 	dst.e21 = src.e21 * sy
 	dst.e22 = src.e22 * sz
+}
+
+// Sets given Mat3 to zeroes and diagonal x y z
+func (MathUtilNamespace) Mat3_diagonal(dst *Mat3, x, y, z float64) {
+	dst.Set(
+		x, 0, 0,
+		0, y, 0,
+		0, 0, z,
+	)
 }
 
 ///////////////////////////////////////////////// Transform

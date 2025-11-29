@@ -16,7 +16,7 @@ func TestVec3(t *testing.T) {
 	t.Run("Vec3 add", func(t *testing.T) {
 		v1 := Vec3{0, 1, 2}
 		v2 := Vec3{3, 4, 5}
-		got := v1.Add(&v2)
+		got := v1.Add(v2)
 		want := Vec3{3, 5, 7}
 		testCheckEqualV3(t, got, want)
 	})

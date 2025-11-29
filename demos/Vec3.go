@@ -28,7 +28,7 @@ func (v *Vec3) Zero() *Vec3 {
 }
 
 // Returns `this` + `v`.
-func (v *Vec3) Add(other *Vec3) Vec3 {
+func (v *Vec3) Add(other Vec3) Vec3 {
 	return Vec3{v.x + other.x, v.y + other.y, v.z + other.z}
 }
 
@@ -141,61 +141,54 @@ func (v *Vec3) CrossEq(other Vec3) *Vec3 {
 }
 
 // Returns the transformed vector by `m`.
-// func (v *Vec3) MulMat3(m:Mat3):Vec3 {
-// 	return new Vec3(
-// 		x * m.e00 + y * m.e01 + z * m.e02,
-// 		x * m.e10 + y * m.e11 + z * m.e12,
-// 		x * m.e20 + y * m.e21 + z * m.e22
-// 	);
-// }
+func (v *Vec3) MulMat3(m *Mat3) Vec3 {
+	return Vec3{
+		v.x*m.e00 + v.y*m.e01 + v.z*m.e02,
+		v.x*m.e10 + v.y*m.e11 + v.z*m.e12,
+		v.x*m.e20 + v.y*m.e21 + v.z*m.e22,
+	}
+}
 
 // Returns the transformed vector by `m`.
-// func (v *Vec3) MulMat4(m:Mat4):Vec3 {
-// 	return new Vec3(
-// 		x * m.e00 + y * m.e01 + z * m.e02 + m.e03,
-// 		x * m.e10 + y * m.e11 + z * m.e12 + m.e13,
-// 		x * m.e20 + y * m.e21 + z * m.e22 + m.e23
-// 	);
-// }
+func (v *Vec3) MulMat4(m *Mat4) Vec3 {
+	return Vec3{
+		v.x*m.e00 + v.y*m.e01 + v.z*m.e02 + m.e03,
+		v.x*m.e10 + v.y*m.e11 + v.z*m.e12 + m.e13,
+		v.x*m.e20 + v.y*m.e21 + v.z*m.e22 + m.e23,
+	}
+}
 
 // Returns the transformed vector by `tf`.
-// func (v *Vec3) MulTransform(tf:Transform):Vec3 {
-// 	var v:IVec3;
-// 	M.vec3_fromVec3(v, this);
-// 	M.vec3_mulMat3(v, v, tf._rotation);
-// 	M.vec3_add(v, v, tf._position);
-// 	var res:Vec3 = new Vec3();
-// 	M.vec3_toVec3(res, v);
-// 	return res;
-// }
+func (v *Vec3) MulTransform(tf *Transform) Vec3 {
+	t := v.MulMat3(&tf.rotation)
+	t = t.Add(tf.position)
+	return t
+}
 
 // Sets this vector to the transformed vector by `m` and returns `this`.
-// func (v *Vec3) MulMat3Eq(m:Mat3):Vec3 {
-// 	return initi(
-// 		x * m.e00 + y * m.e01 + z * m.e02,
-// 		x * m.e10 + y * m.e11 + z * m.e12,
-// 		x * m.e20 + y * m.e21 + z * m.e22
-// 	);
-// }
+func (v *Vec3) MulMat3Eq(m *Mat3) *Vec3 {
+	return v.Set(
+		v.x*m.e00+v.y*m.e01+v.z*m.e02,
+		v.x*m.e10+v.y*m.e11+v.z*m.e12,
+		v.x*m.e20+v.y*m.e21+v.z*m.e22,
+	)
+}
 
 // Sets this vector to the transformed vector by `m` and returns `this`.
-// func (v *Vec3) MulMat4Eq(m:Mat4):Vec3 {
-// 	return initi(
-// 		x * m.e00 + y * m.e01 + z * m.e02 + m.e03,
-// 		x * m.e10 + y * m.e11 + z * m.e12 + m.e13,
-// 		x * m.e20 + y * m.e21 + z * m.e22 + m.e23
-// 	);
-// }
+func (v *Vec3) MulMat4Eq(m *Mat4) *Vec3 {
+	return v.Set(
+		v.x*m.e00+v.y*m.e01+v.z*m.e02+m.e03,
+		v.x*m.e10+v.y*m.e11+v.z*m.e12+m.e13,
+		v.x*m.e20+v.y*m.e21+v.z*m.e22+m.e23,
+	)
+}
 
 // Sets this vector to the transformed vector by `tf` and returns `this`.
-// func (v *Vec3) MulTransformEq(tf:Transform):Vec3 {
-// 	var v:IVec3;
-// 	M.vec3_fromVec3(v, this);
-// 	M.vec3_mulMat3(v, v, tf._rotation);
-// 	M.vec3_add(v, v, tf._position);
-// 	M.vec3_toVec3(this, v);
-// 	return this;
-// }
+func (v *Vec3) MulTransformEq(tf *Transform) *Vec3 {
+	v.MulMat3Eq(&tf.rotation)
+	v.AddEq(tf.position)
+	return v
+}
 
 // Returns the length of the vector.
 func (v *Vec3) Length() float64 {
@@ -260,4 +253,14 @@ func (v *Vec3) NegateEq() *Vec3 {
 // Returns the string representation of the vector.
 func (v *Vec3) String() string {
 	return fmt.Sprintf("Vec3[%f, %f, %f]", MathUtil.ToFixed8(v.x), MathUtil.ToFixed8(v.y), MathUtil.ToFixed8(v.z))
+}
+
+// Returns component-wise multiply of this by given vector
+func (v *Vec3) CompWiseMul(other Vec3) Vec3 {
+	return Vec3{v.x * other.x, v.y * other.y, v.z * other.z}
+}
+
+// Returns result of components multiplied by each other
+func (v *Vec3) MulHorizontal() float64 {
+	return v.x * v.y * v.z
 }
