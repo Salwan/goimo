@@ -126,10 +126,28 @@ func (w *World) solveIslands() {
 		}
 
 		w.buildIsland(b)
+
+		w.island.step(*w.timeStep, w.numVelocityIterations, w.numPositionIterations)
+		w.island.clear()
+		w.numIslands++
 	}
 
-	// TODO
-	panic("not impl")
+	w.contactManager.postSolve()
+
+	// clear island flags
+	// clear forces and torques
+	// (OimoPhysics code loops two times for this)
+	for b := w.rigidBodyList; b != nil; b = b.next {
+		b.addedToIsland = false
+		b.force.Zero()
+		b.torque.Zero()
+	}
+
+	for w.numSolversInIslands > 0 {
+		w.numSolversInIslands--
+		w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
+		w.solversInIslands[w.numSolversInIslands] = nil
+	}
 }
 
 func (w *World) buildIsland(base *RigidBody) {
@@ -182,10 +200,26 @@ func (w *World) buildIsland(base *RigidBody) {
 			js := j.solver
 			if !js.(*ConstraintSolver).addedToIsland {
 
+				// add to constraint array (to clear island flag later)
+				if len(w.solversInIslands) == w.numSolversInIslands {
+					w.solversInIslands = Array_expand(w.solversInIslands)
+				}
+				w.solversInIslands[w.numSolversInIslands] = js
+				w.numSolversInIslands++
+
+				// add to island
+				w.island.AddConstraintSolver(js, j.positionCorrectionAlgorithm)
+
+				// push the other rigid body if not added
+				other := jl.other
+				if !other.addedToIsland {
+					w.island.AddRigidBody(other)
+					w.rigidBodyStack[stackCount] = other
+					stackCount++
+				}
 			}
 		}
 	}
-	// TODO
 }
 
 func (w *World) AddRigidBody(rigidBody *RigidBody) {}

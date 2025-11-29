@@ -15,7 +15,17 @@ func Array_expand[T any](arr []T) []T {
 		newArray[i] = arr[i]
 		var zero T
 		arr[i] = zero
+
 	}
 
 	return newArray
+}
+
+// Iterates array num of elements setting them to the zero value
+func Array_free[T any](arr []T, num int) {
+	var zero T
+	for num > 0 {
+		num--
+		arr[num] = zero
+	}
 }

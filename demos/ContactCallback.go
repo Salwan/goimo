@@ -20,3 +20,17 @@ type IContactCallback interface {
 	// This is called when two shapes end touching each other. `c` is the contact of the two shapes.
 	endContact(c *Contact)
 }
+
+type ContactCallback struct{}
+
+func NewContactCallback() *ContactCallback {
+	return &ContactCallback{}
+}
+
+func (cc *ContactCallback) beginContact(c *Contact) {}
+
+func (cc *ContactCallback) preSolve(c *Contact) {}
+
+func (cc *ContactCallback) postSolve(c *Contact) {}
+
+func (cc *ContactCallback) endContact(c *Contact) {}

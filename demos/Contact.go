@@ -49,4 +49,22 @@ func NewContact() *Contact {
 	return c
 }
 
+func (c *Contact) sendPostSolve() {
+	cc1 := c.s1.contactCallback
+	cc2 := c.s2.contactCallback
+	if cc1 == cc2 {
+		cc2 = nil // avoid calling twice
+	}
+	if cc1 != nil {
+		cc1.postSolve(c)
+	}
+	if cc2 != nil {
+		cc2.postSolve(c)
+	}
+}
+
+func (c *Contact) postSolve() {
+	c.sendPostSolve()
+}
+
 // TODO

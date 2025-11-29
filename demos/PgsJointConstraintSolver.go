@@ -5,11 +5,27 @@ package demos
 // A joint constraint solver using projected Gauss-Seidel (sequential impulse).
 
 type PgsJointConstraintSolver struct {
-	// TODO
+	*ConstraintSolver
+
+	joint    *Joint
+	info     *JointSolverInfo
+	massData []*JointSolverMassDataRow
 }
 
 func NewPgsJointConstraintSolver(joint *Joint) *PgsJointConstraintSolver {
-	return &PgsJointConstraintSolver{}
+	p := &PgsJointConstraintSolver{
+		ConstraintSolver: NewConstraintSolver(),
+
+		joint:    joint,
+		info:     NewJointSolverInfo(),
+		massData: make([]*JointSolverMassDataRow, Settings.MaxJacobianRows),
+	}
+
+	for i := range len(p.massData) {
+		p.massData[i] = NewJointSolverMassDataRow()
+	}
+
+	return p
 }
 
 // TODO

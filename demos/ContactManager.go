@@ -6,9 +6,9 @@ package demos
 
 type ContactManager struct {
 	numContacts     int
-	contactList     Contact
-	contactListLast Contact
-	contactPool     Contact
+	contactList     *Contact
+	contactListLast *Contact
+	contactPool     *Contact
 
 	broadPhase      IBroadPhase
 	collisionMatrix CollisionMatrix
@@ -24,3 +24,11 @@ func NewContactManager(broadPhase IBroadPhase) *ContactManager {
 
 func (cm *ContactManager) updateContacts()  {}
 func (cm *ContactManager) updateManifolds() {}
+
+func (cm *ContactManager) postSolve() {
+	for c := cm.contactList; c != nil; c = c.next {
+		if c.touching {
+			c.postSolve()
+		}
+	}
+}

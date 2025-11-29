@@ -65,16 +65,21 @@ func NewJoint(config *JointConfig, _type int) *Joint {
 		allowCollision:              config.allowCollision,
 		breakForce:                  config.breakForce,
 		breakTorque:                 config.breakTorque,
+		localAnchor1:                config.localAnchor1,
+		localAnchor2:                config.localAnchor2,
+		impulses:                    make([]JointImpulse, Settings.MaxJacobianRows),
 	}
+
 	j.link1 = NewJointLink(j)
 	j.link2 = NewJointLink(j)
+
 	switch config.solverType {
 	case _DIRECT:
 		j.solver = NewDirectJointConstraintSolver(j)
 	case _ITERATIVE:
 		j.solver = NewPgsJointConstraintSolver(j)
 	}
-	// TODO
+
 	return j
 }
 

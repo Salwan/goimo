@@ -127,6 +127,31 @@ func (rb *RigidBody) Integrate(dt float64) {
 	}
 }
 
+func (rb *RigidBody) integratePseudoVelocity() {
+	pseudoVelLengthSq := rb.pseudoVel.Dot(rb.pseudoVel)
+	angPseudoVelLengthSq := rb.angPseudoVel.Dot(rb.angPseudoVel)
+	if pseudoVelLengthSq == 0 && angPseudoVelLengthSq == 0 {
+		return // no need of integration
+	}
+
+	switch rb._type {
+	case _DYNAMIC, _KINEMATIC:
+		translation := rb.pseudoVel
+		rotation := rb.angPseudoVel
+
+		// clear pseudo velocity
+		rb.pseudoVel.Zero()
+		rb.angPseudoVel.Zero()
+
+		// update the transform
+		rb.applyTranslation(&translation)
+		rb.applyRotation(&rotation)
+	case _STATIC:
+		rb.pseudoVel.Zero()
+		rb.angPseudoVel.Zero()
+	}
+}
+
 func (rb *RigidBody) applyTranslation(translation *Vec3) {
 	MathUtil.Vec3_add(&rb.transform.position, &rb.transform.position, translation)
 }
@@ -169,6 +194,10 @@ func (rb *RigidBody) applyRotation(rotation *Vec3) {
 func (rb *RigidBody) updateInvInertia() {
 	MathUtil.Mat3_transformInertia(&rb.invInertia, &rb.invLocalInertia, &rb.transform.rotation)
 	MathUtil.Mat3_scaleRows(&rb.invInertia, &rb.invInertia, rb.rotFactor.x, rb.rotFactor.y, rb.rotFactor.z)
+}
+
+func (rb *RigidBody) IsSleeping() bool {
+	return rb.sleeping
 }
 
 func (rb *RigidBody) IsSleepy() bool {
