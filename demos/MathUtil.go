@@ -358,3 +358,11 @@ func (MathUtilNamespace) Transform_mul(dst *Transform, src1 *Transform, src2 *Tr
 	MathUtil.Vec3_mulMat3(&dst.position, &src1.position, &src2.rotation)
 	MathUtil.Vec3_add(&dst.position, &dst.position, &src2.position)
 }
+
+////////////////////////////////////////////////// AABB
+
+func (MathUtilNamespace) Aabb_overlap(min1, max1, min2, max2 *Vec3) bool {
+	return min1.x < max2.x && max1.x > min2.x &&
+		min1.y < max2.y && max1.y > min2.y &&
+		min1.z < max2.z && max1.z > min2.z
+}

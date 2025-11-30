@@ -17,6 +17,8 @@ type IBroadPhase interface {
 
 	// Returns whether the pair of `proxy1` and `proxy2` is overlapping. As proxies can be larger than the containing AABBs, two proxies may overlap even though their inner AABBs are separate.
 	IsOverlapping(proxy1, proxy2 *Proxy) bool
+
+	IsIncremental() bool
 }
 
 type BroadPhase struct {
@@ -172,6 +174,10 @@ func (bp *BroadPhase) CollectPairs() {}
 
 func (bp *BroadPhase) GetProxyPairList() *ProxyPair {
 	return bp.proxyPairList
+}
+
+func (self *BroadPhase) IsIncremental() bool {
+	return self.incremental
 }
 
 // /////////////////////////////////////////// ConvexSweepGeometry
