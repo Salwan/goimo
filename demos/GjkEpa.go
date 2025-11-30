@@ -9,8 +9,8 @@ import "github.com/Salwan/goimo/debug"
 var GjkEpaInstance *GjkEpa = _newGjkEpa()
 
 type GjkEpa struct {
-	c1  *ConvexGeometry
-	c2  *ConvexGeometry
+	c1  IConvexGeometry
+	c2  IConvexGeometry
 	tf1 *Transform
 	tf2 *Transform
 
@@ -40,7 +40,7 @@ type GjkEpa struct {
 	// for EPA
 
 	depth      float64
-	polyhedron EpaPolyhedron
+	polyhedron *EpaPolyhedron
 
 	// public vars
 
@@ -61,10 +61,152 @@ func _newGjkEpa() *GjkEpa {
 			{0, 1, 0},
 			{0, 0, 1},
 		},
+
+		polyhedron: NewEpaPolyhedron(),
 	}
 }
 
-func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl1, tl2 *Vec3, hit *RayCastHit) bool {
+// --- private ---
+
+func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData, useEpa bool) GjkEpaResultState {
+	debug.GjkLog("----------- GJK begin -----------")
+
+	self.c1 = c1
+	self.c2 = c2
+	self.tf1 = tf1
+	self.tf2 = tf2
+
+	if cache != nil {
+		if cache.gjkCache == nil {
+			cache.gjkCache = NewGjkCache()
+		}
+		self._loadCache(cache.gjkCache)
+	} else {
+		self.dir.Zero()
+	}
+
+	if self.dir.LengthSq() == 0 {
+		// compute the first vertex of the simplex
+		self.dir = tf2.position.Sub(tf1.position)
+		if self.dir.LengthSq() < 1e-6 {
+			self.dir.Set(1, 0, 0)
+		}
+	}
+
+	self.simplexSize = 0
+	self._computeSupportingVertex()
+	self.simplexSize = 1
+
+	// loop count and max iteration of the loop
+	count := 0
+	max := 40
+
+	eps := 1e-4
+	eps2 := eps * eps
+
+	for count < max {
+		// project the origin to the simplex and compute index of voronoi region of the origin.
+		v := 0
+		debug.GjkLog("simplex size: $simplexSize")
+		debug.GjkLog("projecting the origin to the simplex...")
+		switch self.simplexSize {
+		case 1:
+			self.closest.CopyFrom(self.s[0])
+			debug.GjkLog("%v", self.s[0])
+			v = 1
+		case 2:
+			v = SimplexUtil.projectOrigin2(self.s[0], self.s[1], &self.closest)
+			debug.GjkLog("%v", self.s[0])
+			debug.GjkLog("%v", self.s[1])
+		case 3:
+			v = SimplexUtil.projectOrigin3(self.s[0], self.s[1], self.s[2], &self.closest)
+			debug.GjkLog("%v", self.s[0])
+			debug.GjkLog("%v", self.s[1])
+			debug.GjkLog("%v", self.s[2])
+		case 4:
+			v = SimplexUtil.projectOrigin4(self.s[0], self.s[1], self.s[2], self.s[3], &self.closest)
+			debug.GjkLog("%v", self.s[0])
+			debug.GjkLog("%v", self.s[1])
+			debug.GjkLog("%v", self.s[2])
+			debug.GjkLog("%v", self.s[3])
+		}
+
+		// check if the origin is touching or inside the simplex
+		if self.closest.LengthSq() < eps2 {
+			if !useEpa {
+				self.Distance = 0
+				return _SUCCEEDED
+			}
+
+			// make the simplex to be a tetrahedron for EPA computation
+			switch self.simplexSize {
+			case 1:
+				self._pointToTetrahedron()
+				debug.GjkLog("point -> tetrahedron")
+			case 2:
+				self._lineToTetrahedron()
+				debug.GjkLog("line -> tetrahedron")
+			case 3:
+				self._triangleToTetrahedron()
+				debug.GjkLog("triangle -> tetrahedron")
+			}
+			if self.simplexSize == 4 {
+				epaState := self._computeDepth(c1, c2, tf1, tf2, &self.s, &self.w1, &self.w2)
+				if epaState != _SUCCEEDED {
+					self.Distance = 0
+					return epaState
+				}
+				self.Distance = -self.depth
+				return _SUCCEEDED
+			}
+
+			// failed to make a tetrahedron
+			self.Distance = 0
+			return _GJK_FAILED_TO_MAKE_TETRAHEDRON
+		}
+
+		debug.GjkLog("projected origin: $v")
+
+		// shrink the simplex according to the voronoi index of the origin
+		self._shrinkSimplex(v)
+
+		// compute the next vertex
+		self.dir.CopyFrom(self.closest).NegateEq()
+		self._computeSupportingVertex()
+
+		if self.dir.LengthSq() < eps2 {
+			panic("!?") // this should never be happen
+		}
+
+		d1 := self.closest.Dot(self.dir)
+		d2 := self.s[self.simplexSize].Dot(self.dir)
+
+		debug.GjkLog("n: $simplexSize, prev: $closest, current: ${s[simplexSize]}, dir: $dir, iteration: $count, d2 - d1: ${d2 - d1}")
+
+		if d2-d1 < eps2 { // terminate GJK; no improvement
+			self._interpolateClosestPoints()
+
+			debug.GjkLog("iteration: %d", count)
+
+			self.Distance = self.closest.Length() // no improvement
+
+			if cache != nil && cache.gjkCache != nil {
+				self._saveCache(cache.gjkCache)
+			}
+
+			return _SUCCEEDED
+		}
+
+		self.simplexSize++
+		count++
+	}
+
+	debug.GjkLog("GJK failed: did not converge")
+	return _GJK_DID_NOT_CONVERGE
+}
+
+// `c1` can be nil
+func (ge *GjkEpa) _convexCastImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, tl1, tl2 *Vec3, hit *RayCastHit) bool {
 	debug.GjkLog("----------- GJK convex casting begin -----------")
 
 	ge.c1 = c1
@@ -89,7 +231,7 @@ func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl
 	}
 
 	ge.simplexSize = 0
-	ge.computeConvexCastSupportingVertex()
+	ge._computeConvexCastSupportingVertex()
 	ge.simplexSize = 1
 
 	// loop count and max iteration of the loop
@@ -139,7 +281,7 @@ func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl
 		debug.GjkLog("projected origin: pos = %v, voronoi index = %v", closest, v)
 
 		// shrink the simplex according to the voronoi index of the origin
-		ge.shrinkSimplex(v)
+		ge._shrinkSimplex(v)
 
 		// check if the origin is touching or inside the simplex
 		if closest.LengthSq() < eps2 {
@@ -149,7 +291,7 @@ func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl
 				return false // overlapping
 			}
 
-			ge.interpolateClosestPoints()
+			ge._interpolateClosestPoints()
 
 			hit.Fraction = lambda
 			hit.Normal = dir.Normalized()
@@ -162,7 +304,7 @@ func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl
 		// compute the next vertex
 		*dir = *closest
 		dir.NegateEq()
-		ge.computeConvexCastSupportingVertex()
+		ge._computeConvexCastSupportingVertex()
 		ge.s[ge.simplexSize].SubEq(*rayX) // translate origin
 
 		if dir.LengthSq() < eps2 {
@@ -228,7 +370,7 @@ func (ge *GjkEpa) convexCastImpl(c1, c2 *ConvexGeometry, tf1, tf2 *Transform, tl
 	return false
 }
 
-func (ge *GjkEpa) interpolateClosestPoints() {
+func (ge *GjkEpa) _interpolateClosestPoints() {
 	switch ge.simplexSize {
 	case 1:
 		ge.ClosestPoint1 = ge.w1[0]
@@ -311,7 +453,17 @@ func (ge *GjkEpa) interpolateClosestPoints() {
 	}
 }
 
-func (ge *GjkEpa) shrinkSimplex(vertexBits int) {
+func (self *GjkEpa) _loadCache(gjkCache *GjkCache) {
+	// copy simplex data from the cache
+	self.dir.CopyFrom(gjkCache.prevClosestDir)
+}
+
+func (self *GjkEpa) _saveCache(gjkCache *GjkCache) {
+	// set GJK cache for the next computation
+	gjkCache.prevClosestDir.CopyFrom(self.closest).NegateEq()
+}
+
+func (ge *GjkEpa) _shrinkSimplex(vertexBits int) {
 	ge.simplexSize = vertexBits
 	ge.simplexSize = (ge.simplexSize & 5) + (ge.simplexSize >> 1 & 5)
 	ge.simplexSize = (ge.simplexSize & 3) + (ge.simplexSize >> 2 & 3)
@@ -352,17 +504,23 @@ func (ge *GjkEpa) shrinkSimplex(vertexBits int) {
 	}
 }
 
-func (ge *GjkEpa) computeConvexCastSupportingVertex() {
+func (self *GjkEpa) _computeSupportingVertex() {
+	self._computeWitnessPoint1(false)
+	self._computeWitnessPoint2(false)
+	self.s[self.simplexSize].CopyFrom(self.w1[self.simplexSize]).SubEq(self.w2[self.simplexSize])
+}
+
+func (ge *GjkEpa) _computeConvexCastSupportingVertex() {
 	if ge.c1 != nil {
-		ge.computeWitnessPoint1(true)
+		ge._computeWitnessPoint1(true)
 	} else {
 		ge.w1[ge.simplexSize] = ge.tf1.position
 	}
-	ge.computeWitnessPoint2(true)
+	ge._computeWitnessPoint2(true)
 	MathUtil.Vec3_sub(&ge.s[ge.simplexSize], &ge.w1[ge.simplexSize], &ge.w2[ge.simplexSize])
 }
 
-func (ge *GjkEpa) computeWitnessPoint1(addMargin bool) {
+func (ge *GjkEpa) _computeWitnessPoint1(addMargin bool) {
 	idir := ge.dir
 
 	// compute local dir
@@ -372,7 +530,7 @@ func (ge *GjkEpa) computeWitnessPoint1(addMargin bool) {
 	ge.c1.ComputeLocalSupportingVertex(ge.dir, &ge.w1[ge.simplexSize])
 	if addMargin {
 		ge.dir.Normalize()
-		ge.w1[ge.simplexSize].AddScaledEq(ge.dir, ge.c1.gjkMargin)
+		ge.w1[ge.simplexSize].AddScaledEq(ge.dir, ge.c1.GetGjkMargin())
 	}
 
 	// compute world witness point
@@ -385,7 +543,7 @@ func (ge *GjkEpa) computeWitnessPoint1(addMargin bool) {
 	ge.dir = idir
 }
 
-func (ge *GjkEpa) computeWitnessPoint2(addMargin bool) {
+func (ge *GjkEpa) _computeWitnessPoint2(addMargin bool) {
 	idir := ge.dir
 
 	// compute local dir
@@ -396,7 +554,7 @@ func (ge *GjkEpa) computeWitnessPoint2(addMargin bool) {
 	ge.c2.ComputeLocalSupportingVertex(ge.dir, &ge.w2[ge.simplexSize])
 	if addMargin {
 		ge.dir.Normalize()
-		ge.w2[ge.simplexSize].AddScaledEq(ge.dir, ge.c2.gjkMargin)
+		ge.w2[ge.simplexSize].AddScaledEq(ge.dir, ge.c2.GetGjkMargin())
 	}
 
 	// compute world witness point
@@ -409,9 +567,59 @@ func (ge *GjkEpa) computeWitnessPoint2(addMargin bool) {
 	ge.dir = idir
 }
 
+func (self *GjkEpa) _pointToTetrahedron() {
+	// TODO
+	panic("not impl")
+}
+
+func (self *GjkEpa) _lineToTetrahedron() {
+	// TODO
+	panic("not impl")
+}
+
+func (self *GjkEpa) _triangleToTetrahedron() {
+	// TODO
+	panic("not impl")
+}
+
+func (self *GjkEpa) isValidTetrahedron() bool {
+	// TODO
+	panic("not impl")
+}
+
+// EPA
+
+func (self *GjkEpa) _computeDepth(convex1, convex2 IConvexGeometry, tf1, tf2 *Transform, initialPolyhedron, initialPolyhedron1, initialPolyhedron2 *[]Vec3) GjkEpaResultState {
+	// TODO
+	panic("not impl")
+}
+
+// --- public ---
+
+// Computes the closest points of two convex geometries `c1` and `c2` with transforms `tf1` and `tf2` respectively, and returns the status of the result (see `GjkEpaResultState` for details). If cached data `cache` is not `null`, this tries to exploit the previous result in `cache` to improve performance, and stores the new result to `cache`.
+// Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
+func (self *GjkEpa) ComputeClosestPoints(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData) int {
+	// TODO
+	panic("not impl")
+}
+
+// Computes the distance between two convex geometries `c1` and `c2` with transforms `tf1` and `tf2` respectively, and returns the status of the result (see `GjkEpaResultState` for details). Different from `GjkEpa.computeClosestPoints`, this does not compute negative distances and closest points if two geometries are overlapping. If cached data `cache` is not `null`, this tries to exploit the previous result in `cache` to improve performance, and stores the new result to `cache`.
+// Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
+func (self *GjkEpa) ComputeDistance(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData) GjkEpaResultState {
+	// TODO
+	panic("not impl")
+}
+
+// Performs a convex casting between `c1` and `c2`. Returns `true` and sets the result information to `hit` if the convex geometries intersect. Each convex geometries translates by `tl1` and `tl2`, starting from the beginning transforms `tf1` and `tf2` respectively.
+// Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
+func (self *GjkEpa) ConvexCast(c1, c2 IConvexGeometry, tf, tf2 *Transform, tl1, tl2 Vec3, hit *RayCastHit) bool {
+	// TODO
+	panic("not impl")
+}
+
 // Performs ray casting against the convex geometry `c` with transform `tf`. Returns `true` and sets the result information to `hit` if the line segment from `begin` to `end` intersects the convex geometry. Otherwise returns `false`.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
-func (ge *GjkEpa) RayCast(c *ConvexGeometry, tf *Transform, begin, end Vec3, hit *RayCastHit) bool {
+func (ge *GjkEpa) RayCast(c IConvexGeometry, tf *Transform, begin, end Vec3, hit *RayCastHit) bool {
 	ge.tf1.position = begin
 
 	// This temp ref looks like no-op to me, but I'm copying as is
@@ -421,7 +629,7 @@ func (ge *GjkEpa) RayCast(c *ConvexGeometry, tf *Transform, begin, end Vec3, hit
 	MathUtil.Vec3_sub(tl1, &end, &begin)
 	tl2.Zero()
 
-	return ge.convexCastImpl(nil, c, &ge.tempTransform, tf, tl1, tl2, hit)
+	return ge._convexCastImpl(nil, c, &ge.tempTransform, tf, tl1, tl2, hit)
 }
 
 // TODO

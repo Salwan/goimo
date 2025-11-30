@@ -206,7 +206,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 	for i := range island.numSolvers {
 		island.solvers[i].warmStart(timeStep)
 	}
-	for _ = range numVelocityIterations {
+	for range numVelocityIterations {
 		for i := range island.numSolvers {
 			island.solvers[i].solveVelocity()
 		}
@@ -226,7 +226,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 	for i := range island.numSolversSi {
 		island.solversSi[i].preSolvePosition(timeStep)
 	}
-	for _ = range numPositionIterations {
+	for range numPositionIterations {
 		for i := range island.numSolversSi {
 			island.solversSi[i].solvePositionSplitImpulse()
 		}
@@ -241,7 +241,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 	for i := range island.numSolversNgs {
 		island.solversNgs[i].preSolvePosition(timeStep)
 	}
-	for _ = range numPositionIterations {
+	for range numPositionIterations {
 		for i := range island.numSolversNgs {
 			island.solversNgs[i].solvePositionNgs(timeStep)
 		}

@@ -8,6 +8,7 @@ type Proxy struct {
 	prev *Proxy
 	next *Proxy
 
+	// flattened aabb
 	aabbMin Vec3
 	aabbMax Vec3
 
@@ -25,38 +26,49 @@ func NewProxy(userData any, id int) *Proxy {
 	return np
 }
 
-// // --- internal ---
+// --- double linked list interface ---
 
-// extern public inline function _setAabb(aabb:Aabb):Void {
-// 	M.vec3_assign(_aabbMin, aabb._min);
-// 	M.vec3_assign(_aabbMax, aabb._max);
-// }
+func (self *Proxy) GetNext() *Proxy {
+	return self.next
+}
 
-// // --- public ---
+func (self *Proxy) SetNext(x *Proxy) {
+	self.next = x
+}
 
-// /**
-// 	* Returns the unique id of the proxy.
-// 	*/
-// public function getId():Int {
-// 	return _id;
-// }
+func (self *Proxy) GetPrev() *Proxy {
+	return self.prev
+}
 
-// /**
-// 	* Returns the fat AABB of the proxy.
-// 	*/
-// public function getFatAabb():Aabb {
-// 	var aabb:Aabb = new Aabb();
-// 	M.vec3_assign(aabb._min, _aabbMin);
-// 	M.vec3_assign(aabb._max, _aabbMax);
-// 	return aabb;
-// }
+func (self *Proxy) SetPrev(x *Proxy) {
+	self.prev = x
+}
 
-// /**
-// 	* Sets `aabb` to the fat AABB of the proxy.
-// 	*
-// 	* This does not create a new instance of `Aabb`.
-// 	*/
-// public function getFatAabbTo(aabb:Aabb):Void {
-// 	M.vec3_assign(aabb._min, _aabbMin);
-// 	M.vec3_assign(aabb._max, _aabbMax);
-// }
+// --- internal ---
+
+func (self *Proxy) setAabb(aabb Aabb) {
+	self.aabbMin = aabb.Min
+	self.aabbMax = aabb.Max
+}
+
+// --- public ---
+
+// Returns the unique if of the proxy
+func (self *Proxy) GetId() int {
+	return self.id
+}
+
+// Returns the fat AABB of the proxy.
+func (self *Proxy) GetFatAabb() Aabb {
+	return Aabb{
+		Min: self.aabbMin,
+		Max: self.aabbMax,
+	}
+}
+
+// Sets `aabb` to the fat AABB of the proxy.
+// This does not create a new instance of `Aabb`.
+func (self *Proxy) GetFatAabbTo(aabb *Aabb) {
+	aabb.Min = self.aabbMin
+	aabb.Max = self.aabbMax
+}

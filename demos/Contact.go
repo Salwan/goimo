@@ -212,16 +212,54 @@ func (self *Contact) updateManifold() {
 		// update contact manifold
 		if result.incremental {
 			// incremental manifold
-			// HERE: just implemented ManifoldUpdater and all its depedencies
 			self.updater.incrementalUpdate(result, &self.b1.transform, &self.b2.transform)
+		} else {
+			// one-shot manifold
+			self.updater.totalUpdate(result, &self.b1.transform, &self.b2.transform)
 		}
+	} else {
+		self.manifold.clear()
+	}
 
-		// TODO
+	if self.touching && !ptouching {
+		self._sendBeginContact()
+	}
+	if !self.touching && ptouching {
+		self._sendEndContact()
+	}
+	if self.touching {
+		self._sendPreSolve()
 	}
 }
 
+// called from the contact manager
 func (c *Contact) postSolve() {
 	c._sendPostSolve()
 }
 
-// TODO
+// --- public ---
+
+// Returns the first shape of the contact.
+func (self *Contact) GetShape1() *Shape {
+	return self.s1
+}
+
+// Returns the second shape of the contact.
+func (self *Contact) GetShape2() *Shape {
+	return self.s2
+}
+
+// Returns whether the shapes are touching.
+func (self *Contact) isTouching() bool {
+	return self.touching
+}
+
+// Returns the contact manifold.
+func (self *Contact) GetManifold() *Manifold {
+	return self.manifold
+}
+
+// Returns the contact constraint.
+func (self *Contact) GetContactConstraint() *ContactConstraint {
+	return self.contactConstraint
+}

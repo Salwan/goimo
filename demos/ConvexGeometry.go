@@ -3,6 +3,16 @@ package demos
 // ///////////////////////////////////// ConvexGeometry
 // (oimo/collision/geometry/ConvexGeometry.go)
 // Abstract class of the convex collision geometries supported by GJK/EPA collision detection.
+type IConvexGeometry interface {
+	// Computes supporting vertex of the "core" of the geometry in local coordinates. Note that the direction vector `dir` might not be normalized. `out` is set to the computed supporting vertex.
+	ComputeLocalSupportingVertex(dir Vec3, out *Vec3)
+
+	// Gjk Margin should not < 0
+	GetGjkMargin() float64
+
+	SetGjkMargin(gjk_margin float64)
+}
+
 type ConvexGeometry struct {
 	*Geometry
 
@@ -19,7 +29,10 @@ func NewConvexGeometry(_type_ GeometryType) *ConvexGeometry {
 	}
 }
 
-// Gjk Margin should not < 0
+func (cg *ConvexGeometry) GetGjkMargin() float64 {
+	return cg.gjkMargin
+}
+
 func (cg *ConvexGeometry) SetGjkMargin(gjk_margin float64) {
 	if gjk_margin < 0 {
 		gjk_margin = 0
@@ -27,7 +40,6 @@ func (cg *ConvexGeometry) SetGjkMargin(gjk_margin float64) {
 	cg.gjkMargin = gjk_margin
 }
 
-// Computes supporting vertex of the "core" of the geometry in local coordinates. Note that the direction vector `dir` might not be normalized. `out` is set to the computed supporting vertex.
 func (cg *ConvexGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) {}
 
 func (cg *ConvexGeometry) RayCast(begin, end Vec3, transform *Transform, hit *RayCastHit) bool {

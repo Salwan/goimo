@@ -16,13 +16,37 @@ type EpaVertex struct {
 	tmpEdgeLoopNext          *EpaVertex
 	tmpEdgeLoopOuterTriangle *EpaTriangle
 
-	randInt int
+	randId int
 }
 
 func NewEpaVertex() *EpaVertex {
 	return &EpaVertex{
-		randInt: rand.Intn(100000),
+		randId: rand.Intn(100000),
 	}
 }
 
-// TODO
+// --- single linked list interface ---
+
+func (c *EpaVertex) GetNext() *EpaVertex {
+	return c.next
+}
+
+func (c *EpaVertex) SetNext(x *EpaVertex) {
+	c.next = x
+}
+
+func (self *EpaVertex) Set(v, w1, w2 Vec3) *EpaVertex {
+	self.v = v
+	self.w1 = w1
+	self.w2 = w2
+	self.next = nil
+	self.tmpEdgeLoopNext = nil
+	self.tmpEdgeLoopOuterTriangle = nil
+	return self
+}
+
+func (self *EpaVertex) removeReferences() {
+	self.next = nil
+	self.tmpEdgeLoopNext = nil
+	self.tmpEdgeLoopOuterTriangle = nil
+}

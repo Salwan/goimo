@@ -23,7 +23,9 @@ func NewContactManager(broadPhase IBroadPhase) *ContactManager {
 	return cm
 }
 
-func (cm *ContactManager) createContacts() {
+// --- private ---
+
+func (cm *ContactManager) _createContacts() {
 	for pp := cm.broadPhase.GetProxyPairList(); pp != nil; pp = pp.next {
 		var s1 *Shape
 		var s2 *Shape
@@ -40,7 +42,7 @@ func (cm *ContactManager) createContacts() {
 		}
 
 		// collision filtering
-		if !cm.shouldCollide(s1, s2) {
+		if !cm._shouldCollide(s1, s2) {
 			continue
 		}
 
@@ -83,11 +85,11 @@ func (cm *ContactManager) createContacts() {
 	}
 }
 
-func (cm *ContactManager) destroyOutdatedContacts() {
+func (self *ContactManager) _destroyOutdatedContacts() {
 	// whether the broadphase returns only new overlapping pairs
-	incremental := cm.broadPhase.(*BroadPhase).incremental
+	incremental := self.broadPhase.(*BroadPhase).incremental
 
-	for c := cm.contactList; c != nil; c = c.next {
+	for c := self.contactList; c != nil; c = c.next {
 		if c.latest {
 			// the contact is overlapping, make it old for the next step
 			c.latest = false
@@ -97,15 +99,42 @@ func (cm *ContactManager) destroyOutdatedContacts() {
 		if !incremental {
 			// the pair is separated, because the broad-phase algorithm collects
 			// all the overlapping pairs and they are marked as latest
-			cm.destroyContact(c)
+			self.destroyContact(c)
 		}
+
+		s1 := c.s1
+		s2 := c.s2
+		r1 := s1.rigidBody
+		r2 := s2.rigidBody
+
+		active1 := !r1.sleeping && r1._type != _STATIC
+		active2 := !r2.sleeping && r2._type != _STATIC
+		if !active1 && !active2 {
+			// skip the pair if both rigid bodies are inactive
+			c.shouldBeSkipped = true
+			break
+		}
+
+		aabb1 := s1.aabb
+		aabb2 := s2.aabb
+		if !self.broadPhase.IsOverlapping(s1.proxy, s2.proxy) || !self._shouldCollide(s1, s2) {
+			// the proxy pair is separated or shouldn't collide
+			self.destroyContact(c)
+			break
+		}
+
+		// the proxies are overlapping, but AABBs might be separated
+		_ = aabb1
+		_ = aabb2
+		panic("not impl")
+		//aabbOverlapping := M.aabb_overlap(aabb1._min, aabb1._max, aabb2._min, aabb2._max)
 	}
 
 	// TODO
 	panic("not impl")
 }
 
-func (cm *ContactManager) shouldCollide(s1, s2 *Shape) bool {
+func (cm *ContactManager) _shouldCollide(s1, s2 *Shape) bool {
 	r1 := s1.rigidBody
 	r2 := s2.rigidBody
 
@@ -145,28 +174,52 @@ func (cm *ContactManager) shouldCollide(s1, s2 *Shape) bool {
 	return true
 }
 
+// --- internal ---
+
 func (cm *ContactManager) updateContacts() {
-	cm.broadPhase.collectPairs()
-	cm.createContacts()
-	cm.destroyOutdatedContacts()
+	cm.broadPhase.CollectPairs()
+	cm._createContacts()
+	cm._destroyOutdatedContacts()
 }
 
-func (cm *ContactManager) updateManifolds() {
-	// TODO
-	panic("not impl")
-}
-
-func (cm *ContactManager) postSolve() {
-	for c := cm.contactList; c != nil; c = c.next {
+// send postSolve events
+func (self *ContactManager) postSolve() {
+	for c := self.contactList; c != nil; c = c.next {
 		if c.touching {
 			c.postSolve()
 		}
 	}
 }
 
-func (cm *ContactManager) destroyContact(contact *Contact) {
-	DoubleList_remove(&cm.contactList, &cm.contactListLast, contact)
+func (self *ContactManager) updateManifolds() {
+	for c := self.contactList; c != nil; c = c.next {
+		if !c.shouldBeSkipped {
+			c.updateManifold()
+		}
+	}
+}
+
+func (self *ContactManager) destroyContact(contact *Contact) {
+	DoubleList_remove(&self.contactList, &self.contactListLast, contact)
 	contact.detach()
+
+	// put it into the pool
+	//M.singleList_pool(_contactPool, _next, contact)
+	SingleList_pool(&self.contactPool, contact)
+
+	self.numContacts--
+}
+
+// --- public ---
+
+// Returns the number of the contacts in the world.
+func (self *ContactManager) GetNumContacts() int {
+	return self.numContacts
+}
+
+// Returns the linked list of the contacts in the world.
+func (self *ContactManager) GetContactList() *Contact {
+	return self.contactList
 }
 
 // TODO

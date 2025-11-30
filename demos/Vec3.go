@@ -253,14 +253,13 @@ func (v *Vec3) NegateEq() *Vec3 {
 	return v
 }
 
-// Go doesn't need these
 // Copies values from `v` and returns `this`.
-// func (v *Vec3) CopyFrom(other Vec3) *Vec3 {
-// 	v.x = other.x
-// 	v.y = other.y
-// 	v.z = other.z
-// 	return v
-// }
+func (v *Vec3) CopyFrom(other Vec3) *Vec3 {
+	v.x = other.x
+	v.y = other.y
+	v.z = other.z
+	return v
+}
 
 // Returns a clone of the vector.
 // func (v *Vec3) Clone():Vec3 {

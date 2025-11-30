@@ -64,6 +64,6 @@ func (sh *Shape) sync(tf1 *Transform, tf2 *Transform) {
 
 	if sh.proxy != nil {
 		MathUtil.Vec3_sub(&sh.displacement, &sh.transform.position, &sh.pTransform.position)
-		sh.rigidBody.world.broadPhase.moveProxy(sh.proxy, &sh.aabb, sh.displacement)
+		sh.rigidBody.world.broadPhase.MoveProxy(sh.proxy, &sh.aabb, sh.displacement)
 	}
 }

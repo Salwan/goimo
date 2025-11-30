@@ -118,6 +118,41 @@ func TestSingleList_pick_UsesCreator(t *testing.T) {
 	}
 }
 
+func TestSingleList_pool(t *testing.T) {
+	var head *MyNode
+
+	a := &MyNode{ID: 1}
+	b := &MyNode{ID: 2}
+	c := &MyNode{ID: 3}
+
+	// Push a → list: a
+	SingleList_pool(&head, a)
+	if head != a {
+		t.Fatalf("expected head=a; got %v", head)
+	}
+	if a.Next != nil {
+		t.Fatalf("expected a.Next=nil; got %v", a.Next)
+	}
+
+	// Push b → list: b -> a
+	SingleList_pool(&head, b)
+	if head != b {
+		t.Fatalf("expected head=b; got %v", head)
+	}
+	if b.Next != a {
+		t.Fatalf("expected b.Next=a; got %v", b.Next)
+	}
+
+	// Push c → list: c -> b -> a
+	SingleList_pool(&head, c)
+	if head != c {
+		t.Fatalf("expected head=c; got %v", head)
+	}
+	if c.Next != b {
+		t.Fatalf("expected c.Next=b; got %v", c.Next)
+	}
+}
+
 // --- Double List Tests ---
 
 type MyDoubleNode struct {

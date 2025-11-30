@@ -21,8 +21,13 @@ func SingleList_addFirst[N interface {
 	ISingleLinkNode[N]
 	comparable
 }](head *N, n N) {
-	n.SetNext(*head)
-	*head = n
+	var zero N
+	if *head == zero {
+		*head = n
+	} else {
+		n.SetNext(*head)
+		*head = n
+	}
 }
 
 // Pop next available element from pool, or return nil if no elements
@@ -38,6 +43,15 @@ func SingleList_pick[N interface {
 	*head = n.GetNext()
 	n.SetNext(zero)
 	return n
+}
+
+// Push the node 'n' onto the front of list
+func SingleList_pool[N interface {
+	ISingleLinkNode[N]
+	comparable
+}](head *N, n N) {
+	n.SetNext(*head)
+	*head = n
 }
 
 ///////////////////////////////////////////// Double List

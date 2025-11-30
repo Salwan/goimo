@@ -1,11 +1,17 @@
 package demos
 
+import (
+	"fmt"
+
+	"github.com/Salwan/goimo/debug"
+)
+
 //////////////////////////////////////////////// EpaPolyhedron
 // (oimo/collision/narrowphase/detector/gjkepa/EpaPolyhedron.go)
 // Internal class.
 
 type EpaPolyhedron struct {
-	vertices    []EpaVertex
+	vertices    []*EpaVertex
 	numVertices int
 
 	triangleList     *EpaTriangle
@@ -16,260 +22,294 @@ type EpaPolyhedron struct {
 	vertexPool   *EpaVertex
 
 	center Vec3
-	status int
+	status EpaPolyhedronState
 }
 
-func NewEpaPolyhedro() *EpaPolyhedron {
-	return &EpaPolyhedron{
-		vertices: make([]EpaVertex, Settings.MaxEPAVertices),
+func NewEpaPolyhedron() *EpaPolyhedron {
+	e := &EpaPolyhedron{
+		vertices: make([]*EpaVertex, Settings.MaxEPAVertices),
+	}
+	for i := range len(e.vertices) {
+		e.vertices[i] = NewEpaVertex()
+	}
+	return e
+}
+
+// --- private ---
+
+func (self *EpaPolyhedron) _pickTriangle() *EpaTriangle {
+	return SingleList_pick(&self.trianglePool, NewEpaTriangle)
+}
+
+func (self *EpaPolyhedron) _poolTriangle(t *EpaTriangle) {
+	t.removeReferences()
+	SingleList_pool(&self.trianglePool, t)
+}
+
+func (self *EpaPolyhedron) _setAdjacentTriangle(t1, t2 *EpaTriangle) {
+	if !t1.setAdjacentTriangle(t2) {
+		self.status = _INVALID_TRIANGLE
 	}
 }
 
-// // --- private ---
+func (self *EpaPolyhedron) _initTriangle(t *EpaTriangle, vertex1, vertex2, vertex3 *EpaVertex, center Vec3, autoCheck bool) {
+	if !t.init(vertex1, vertex2, vertex3, center, autoCheck) {
+		self.status = _INVALID_TRIANGLE
+	}
+}
 
-// extern inline function pickTriangle():EpaTriangle {
-// 	return M.singleList_pick(_trianglePool, _next, new EpaTriangle());
-// }
+func (self *EpaPolyhedron) _dumpHoleEdge(first *EpaVertex) {
+	if debug.Debug {
+		v := first
+		vs := ""
+		fs := ""
+		cnt := 0
+		for {
+			cnt += 2
+			vs += fmt.Sprintf("v %f %f %f\n", v.v.x, v.v.y, v.v.z)
+			vs += fmt.Sprintf("v %f %f %f\n", v.v.x, v.v.y, v.v.z)
+			fs += fmt.Sprintf("f %d %d %d\n", cnt-1, cnt, cnt+1)
+			v = v.tmpEdgeLoopNext
+			if v == first {
+				break
+			}
+		}
+		vs += fmt.Sprintf("v %f %f %f\n", v.v.x, v.v.y, v.v.z)
+		debug.GjkLog("edge loop data:\n%v\n%v", vs, fs)
+	}
+}
 
-// extern inline function poolTriangle(t:EpaTriangle):Void {
-// 	t.removeReferences();
-// 	M.singleList_pool(_trianglePool, _next, t);
-// }
+func (self *EpaPolyhedron) _validate() bool {
+	for t := self.triangleList; t != nil; t = t.next {
+		for i := range 3 {
+			t.vertices[i].tmpEdgeLoopOuterTriangle = nil
+			t.vertices[i].tmpEdgeLoopNext = nil
+			if t.adjacentPairIndex[i] == -1 {
+				self.status = _NO_ADJACENT_PAIR_INDEX
+				return false
+				//(oimo) throw M.error("!?")
+			}
+			if t.adjacentTriangles[i] == nil {
+				self.status = _NO_ADJACENT_TRIANGLE
+				return false
+				//throw M.error("!?")
+			}
+		}
+	}
+	return true
+}
 
-// extern inline function setAdjacentTriangle(t1:EpaTriangle, t2:EpaTriangle):Void {
-// 	if (!t1.setAdjacentTriangle(t2)) {
-// 		_status = EpaPolyhedronState.INVALID_TRIANGLE;
-// 	}
-// }
+func (self *EpaPolyhedron) _findEdgeLoop(id int, base *EpaTriangle, from Vec3) {
+	if base.tmpDfsId == id {
+		return
+	}
+	base.tmpDfsId = id
+	debug.GjkLog("DFS: %d", base.id)
+	if !base.checkVisible(id, from) {
+		self.status = _TRIANGLE_INVISIBLE
+		debug.GjkLog("tri %d is invisible", base.id)
+		return
+	}
 
-// extern inline function initTriangle(t:EpaTriangle, vertex1:EpaVertex, vertex2:EpaVertex, vertex3:EpaVertex, center:Vec3, autoCheck:Bool = false):Void {
-// 	if (!t.init(vertex1, vertex2, vertex3, center, autoCheck)) {
-// 		_status = EpaPolyhedronState.INVALID_TRIANGLE;
-// 	}
-// }
+	// find edges of the hole
+	for i := range 3 {
+		t := base.adjacentTriangles[i]
+		if t == nil {
+			continue
+		}
+		if t.checkVisible(id, from) {
+			debug.GjkLog("tri %d is visible.")
+			self._findEdgeLoop(id, t, from)
+		} else {
+			// triangle `base` can be seen from `from`, but triangle `t` cannot.
+			debug.GjkLog("tri  %d is invisible.")
+			debug.GjkLog("added edge: %d %d", base.id, t.id)
+			i2 := base.nextIndex[i]
+			v1 := base.vertices[i]
+			v2 := base.vertices[i2]
+			*v1.tmpEdgeLoopNext = *v2
+			*v1.tmpEdgeLoopOuterTriangle = *t
+		}
+	}
 
-// function dumpHoleEdge(first:EpaVertex):Void {
-// 	GjkEpaLog.run({
-// 		var v:EpaVertex = first;
-// 		var vs = "";
-// 		var fs = "";
-// 		var cnt = 0;
-// 		do {
-// 			cnt += 2;
-// 			vs += "v " + v.v.x + " " + v.v.y + " " + v.v.z + "\n";
-// 			vs += "v " + v.v.x + " " + v.v.y + " " + v.v.z + "\n";
-// 			fs += "f " + (cnt - 1) + " " + cnt + " " + (cnt + 1) + "\n";
-// 			v = v._tmpEdgeLoopNext;
-// 		} while (v != first);
-// 		vs += "v " + v.v.x + " " + v.v.y + " " + v.v.z + "\n";
-// 		trace("edge loop data:\n" + vs + "\n" + fs);
-// 	});
-// }
+	// expand the whole
+	base.removeAdjacentTriangles()
+	self._removeTriangle(base)
+}
 
-// function validate():Bool {
-// 	var t:EpaTriangle;
-// 	t = _triangleList;
-// 	M.list_foreach(t, _next, {
-// 		for (i in 0...3) {
-// 			t._vertices[i]._tmpEdgeLoopOuterTriangle = null;
-// 			t._vertices[i]._tmpEdgeLoopNext = null;
-// 			if (t._adjacentPairIndex[i] == -1) {
-// 				_status = EpaPolyhedronState.NO_ADJACENT_PAIR_INDEX;
-// 				return false;
-// 				//throw M.error("!?"));
-// 			}
-// 			if (t._adjacentTriangles[i] == null) {
-// 				_status = EpaPolyhedronState.NO_ADJACENT_TRIANGLE;
-// 				return false;
-// 				//throw M.error("!?"));
-// 			}
-// 		}
-// 	});
-// 	return true;
-// }
+func (self *EpaPolyhedron) _addTriangle(t *EpaTriangle) {
+	self.numTriangles++
+	if debug.Debug {
+		debug.GjkLog("triangle added %d %d", self.numTriangles, t.id)
+		t.dump()
+	}
+	DoubleList_push(&self.triangleList, &self.triangleListLast, t)
+}
 
-// function findEdgeLoop(id:Int, base:EpaTriangle, from:Vec3):Void {
-// 	if (base._tmpDfsId == id) return;
-// 	base._tmpDfsId = id;
-// 	GjkEpaLog.log("DFS: " + base.id);
-// 	if (!base.checkVisible(id, from)) {
-// 		_status = EpaPolyhedronState.TRIANGLE_INVISIBLE;
-// 		GjkEpaLog.log("tri " + base.id + " is invisible!");
-// 		return;
-// 	}
+func (self *EpaPolyhedron) _removeTriangle(t *EpaTriangle) {
+	self.numTriangles--
+	debug.GjkLog("triangle removed %d, id: %d", self.numTriangles, t.id)
+	DoubleList_remove(&self.triangleList, &self.triangleListLast, t)
+	self._poolTriangle(t)
+}
 
-// 	// find edges of the hole
-// 	for (i in 0...3) {
-// 		var t:EpaTriangle = base._adjacentTriangles[i];
-// 		if (t == null) continue;
-// 		if (t.checkVisible(id, from)) {
-// 			GjkEpaLog.log("tri " + t.id + " is visible.");
-// 			findEdgeLoop(id, t, from);
-// 		} else {
-// 			// triangle `base` can be seen from `from`, but triangle `t` cannot.
-// 			GjkEpaLog.log("tri " + t.id + " is invisible.");
-// 			GjkEpaLog.log("added edge: " + base.id + " " + t.id);
-// 			var i2:Int = base._nextIndex[i];
-// 			var v1:EpaVertex = base._vertices[i];
-// 			var v2:EpaVertex = base._vertices[i2];
-// 			v1._tmpEdgeLoopNext = v2;
-// 			v1._tmpEdgeLoopOuterTriangle = t;
-// 		}
-// 	}
+// --- internal ---
 
-// 	// expand the hole
-// 	base.removeAdjacentTriangles();
-// 	removeTriangle(base);
-// }
+func (self *EpaPolyhedron) pickVertex() *EpaVertex {
+	return SingleList_pick(&self.vertexPool, NewEpaVertex)
+}
 
-// extern inline function addTriangle(t:EpaTriangle):Void {
-// 	_numTriangles++;
-// 	GjkEpaLog.log("triangle added " + _numTriangles + ", id: " + t.id);
-// 	GjkEpaLog.run(t.dump());
-// 	M.list_push(_triangleList, _triangleListLast, _prev, _next, t);
-// }
+func (self *EpaPolyhedron) poolVertex(v *EpaVertex) {
+	v.removeReferences()
+	SingleList_pool(&self.vertexPool, v)
+}
 
-// extern inline function removeTriangle(t:EpaTriangle):Void {
-// 	_numTriangles--;
-// 	GjkEpaLog.log("triangle removed " + _numTriangles + ", id: " + t.id);
-// 	M.list_remove(_triangleList, _triangleListLast, _prev, _next, t);
-// 	poolTriangle(t);
-// }
+func (self *EpaPolyhedron) clear() {
+	for self.numTriangles > 0 {
+		self._removeTriangle(self.triangleList)
+	}
+	if debug.Debug {
+		if self.triangleList != nil {
+			panic("Oimo assert here")
+		}
+		if self.triangleListLast != nil {
+			panic("Oimo assert here")
+		}
+	}
+	for self.numVertices > 0 {
+		self.numVertices--
+		self.poolVertex(self.vertices[self.numVertices])
+	}
+}
 
-// // --- internal ---
+func (self *EpaPolyhedron) init(v1, v2, v3, v4 *EpaVertex) bool {
+	self.status = _OK
+	self.numVertices = 4
 
-// extern public inline function _pickVertex():EpaVertex {
-// 	return M.singleList_pick(_vertexPool, _next, new EpaVertex());
-// }
+	*self.vertices[0] = *v1
+	*self.vertices[1] = *v2
+	*self.vertices[2] = *v3
+	*self.vertices[3] = *v4
+	self.center.CopyFrom(v1.v).AddEq(v2.v).AddEq(v3.v).AddEq(v4.v).ScaleEq(0.25)
 
-// extern public inline function _poolVertex(v:EpaVertex):Void {
-// 	v.removeReferences();
-// 	M.singleList_pool(_vertexPool, _next, v);
-// }
+	t1 := self._pickTriangle()
+	t2 := self._pickTriangle()
+	t3 := self._pickTriangle()
+	t4 := self._pickTriangle()
 
-// extern public inline function _clear():Void {
-// 	while (_numTriangles > 0) {
-// 		removeTriangle(_triangleList);
-// 	}
-// 	M.assert(_triangleList == null);
-// 	M.assert(_triangleListLast == null);
-// 	while (_numVertices > 0) {
-// 		_poolVertex(_vertices[--_numVertices]);
-// 	}
-// }
+	self._initTriangle(t1, v1, v2, v3, self.center, true)
+	self._initTriangle(t2, v1, v2, v4, self.center, true)
+	self._initTriangle(t3, v1, v3, v4, self.center, true)
+	self._initTriangle(t4, v2, v3, v4, self.center, true)
 
-// public function _init(v1:EpaVertex, v2:EpaVertex, v3:EpaVertex, v4:EpaVertex):Bool {
-// 	_status = EpaPolyhedronState.OK;
-// 	_numVertices = 4;
-// 	_vertices[0] = v1;
-// 	_vertices[1] = v2;
-// 	_vertices[2] = v3;
-// 	_vertices[3] = v4;
-// 	_center.copyFrom(v1.v).addEq(v2.v).addEq(v3.v).addEq(v4.v).scaleEq(0.25);
-// 	var t1:EpaTriangle;
-// 	var t2:EpaTriangle;
-// 	var t3:EpaTriangle;
-// 	var t4:EpaTriangle;
-// 	t1 = pickTriangle();
-// 	t2 = pickTriangle();
-// 	t3 = pickTriangle();
-// 	t4 = pickTriangle();
-// 	initTriangle(t1, v1, v2, v3, _center, true);
-// 	initTriangle(t2, v1, v2, v4, _center, true);
-// 	initTriangle(t3, v1, v3, v4, _center, true);
-// 	initTriangle(t4, v2, v3, v4, _center, true);
-// 	setAdjacentTriangle(t1, t2);
-// 	setAdjacentTriangle(t1, t3);
-// 	setAdjacentTriangle(t1, t4);
-// 	setAdjacentTriangle(t2, t3);
-// 	setAdjacentTriangle(t2, t4);
-// 	setAdjacentTriangle(t3, t4);
-// 	addTriangle(t1);
-// 	addTriangle(t2);
-// 	addTriangle(t3);
-// 	addTriangle(t4);
-// 	return _status == EpaPolyhedronState.OK;
-// }
+	self._setAdjacentTriangle(t1, t2)
+	self._setAdjacentTriangle(t1, t3)
+	self._setAdjacentTriangle(t1, t4)
+	self._setAdjacentTriangle(t2, t3)
+	self._setAdjacentTriangle(t2, t4)
+	self._setAdjacentTriangle(t3, t4)
 
-// extern public inline function _getBestTriangle():EpaTriangle {
-// 	var f:EpaTriangle = _triangleList;
-// 	var mind:Float = MathUtil.POSITIVE_INFINITY;
-// 	var minf:EpaTriangle = null;
-// 	M.list_foreach(f, _next, {
-// 		if (f._distanceSq < mind) {
-// 			mind = f._distanceSq;
-// 			minf = f;
-// 		}
-// 	});
-// 	return minf;
-// }
+	self._addTriangle(t1)
+	self._addTriangle(t2)
+	self._addTriangle(t3)
+	self._addTriangle(t4)
 
-// public function _addVertex(vertex:EpaVertex, base:EpaTriangle):Bool {
-// 	_vertices[_numVertices++] = vertex;
-// 	GjkEpaLog.log("vertex added " + _numVertices + " " + vertex.v);
-// 	GjkEpaLog.log("begin polyhedron modifying...");
+	return self.status == _OK
+}
 
-// 	var v1:EpaVertex = base._vertices[0];
+func (self *EpaPolyhedron) getBestTriangle() *EpaTriangle {
+	mind := MathUtil.POSITIVE_INFINITY
+	var minf *EpaTriangle
+	for f := self.triangleList; f != nil; f = f.next {
+		if f.distanceSq < mind {
+			mind = f.distanceSq
+			minf = f
+		}
+	}
+	return minf
+}
 
-// 	GjkEpaLog.log("trying to find a edge loop... v=" + vertex.v);
-// 	// make a hole on the polyhedron finding its edge loop
-// 	findEdgeLoop(_numVertices, base, vertex.v);
-// 	if (_status != EpaPolyhedronState.OK) return false;
+func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool {
+	*self.vertices[self.numVertices] = *vertex
+	self.numVertices++
 
-// 	GjkEpaLog.run({
-// 		dumpHoleEdge(v1);
-// 	});
+	debug.GjkLog("vertex added %d %v", self.numVertices, vertex.v)
+	debug.GjkLog("begin polyhedron modifying...")
 
-// 	// ... and "patch" the hole
-// 	var v:EpaVertex = v1;
-// 	var firstV:EpaVertex = v1;
-// 	var prevT:EpaTriangle = null;
-// 	var firstT:EpaTriangle = null;
-// 	do {
-// 		if (v._tmpEdgeLoopNext == null) {
-// 			GjkEpaLog.log("edge loop is broken:");
-// 			_dumpAsObjModel();
-// 			_status = EpaPolyhedronState.EDGE_LOOP_BROKEN;
-// 			return false;
-// 		}
-// 		if (v._tmpEdgeLoopOuterTriangle == null) {
-// 			_status = EpaPolyhedronState.NO_OUTER_TRIANGLE;
-// 			return false;
-// 		}
+	v1 := base.vertices[0]
 
-// 		var t:EpaTriangle = pickTriangle();
-// 		if (firstT == null) firstT = t;
-// 		GjkEpaLog.log("patching...");
+	debug.GjkLog("trying to find a edge loop... v=%v", vertex.v)
 
-// 		initTriangle(t, v, v._tmpEdgeLoopNext, vertex, _center);
-// 		if (_status != EpaPolyhedronState.OK) return false;
-// 		addTriangle(t);
+	// make a hole on the polyhedron finding its edge loop
+	self._findEdgeLoop(self.numVertices, base, vertex.v)
+	if self.status != _OK {
+		return false
+	}
 
-// 		setAdjacentTriangle(t, v._tmpEdgeLoopOuterTriangle);
-// 		if (prevT != null) setAdjacentTriangle(t, prevT);
+	if debug.Debug {
+		self._dumpHoleEdge(v1)
+	}
 
-// 		prevT = t;
+	// ... and "patch" the hole
+	v := v1
+	firstV := v1
+	var prevT *EpaTriangle
+	var firstT *EpaTriangle
+	for {
+		if v.tmpEdgeLoopNext == nil {
+			debug.GjkLog("edge loop is broken:")
+			self.dumpAsObjModel()
+			self.status = _EDGE_LOOP_BROKEN
+			return false
+		}
+		if v.tmpEdgeLoopOuterTriangle == nil {
+			self.status = _NO_OUTER_TRIANGLE
+			return false
+		}
 
-// 		v = v._tmpEdgeLoopNext;
-// 	} while (v != firstV);
-// 	setAdjacentTriangle(prevT, firstT);
+		t := self._pickTriangle()
+		if firstT == nil {
+			firstT = t
+		}
+		debug.GjkLog("patching...")
 
-// 	return _status == EpaPolyhedronState.OK && validate();
-// }
+		self._initTriangle(t, v, v.tmpEdgeLoopNext, vertex, self.center, false)
+		if self.status != _OK {
+			return false
+		}
+		self._addTriangle(t)
 
-// public function _dumpAsObjModel():Void {
-// 	GjkEpaLog.run({
-// 		trace("dumping .obj model of the polyhedron...");
-// 		var f:EpaTriangle = _triangleList;
-// 		var vs:String = "";
-// 		var fs:String = "";
-// 		var c:Int = 0;
-// 		M.list_foreach(f, _next, {
-// 			vs += "v " + f._vertices[0].v.x + " " + f._vertices[0].v.y + " " + f._vertices[0].v.z + "\n";
-// 			vs += "v " + f._vertices[1].v.x + " " + f._vertices[1].v.y + " " + f._vertices[1].v.z + "\n";
-// 			vs += "v " + f._vertices[2].v.x + " " + f._vertices[2].v.y + " " + f._vertices[2].v.z + "\n";
-// 			fs += "f " + ++c + " " + ++c + " " + ++c + "\n";
-// 		});
-// 		trace("\n\n#EPAPolyhedron\n" + vs + "\n" + fs + "\n\n");
-// 	});
-// }
+		self._setAdjacentTriangle(t, v.tmpEdgeLoopOuterTriangle)
+		if prevT != nil {
+			self._setAdjacentTriangle(t, prevT)
+		}
+
+		prevT = t
+
+		v = v.tmpEdgeLoopNext
+
+		if v == firstV {
+			break
+		}
+	}
+	self._setAdjacentTriangle(prevT, firstT)
+
+	return self.status == _OK && self._validate()
+}
+
+func (self *EpaPolyhedron) dumpAsObjModel() {
+	if debug.Debug {
+		debug.GjkLog("dumping .obj model of the polyhedron...")
+		var vs string
+		var fs string
+		c := 0
+		for f := self.triangleList; f != nil; f = f.next {
+			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[0].v.x, f.vertices[0].v.y, f.vertices[0].v.z)
+			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[1].v.x, f.vertices[1].v.y, f.vertices[1].v.z)
+			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[2].v.x, f.vertices[2].v.y, f.vertices[2].v.z)
+			fs += fmt.Sprintf("f %d %d %d\n", c+1, c+2, c+3)
+			c += 3
+		}
+		debug.GjkLog("\n\n#EPAPolyhedron\n%v\n%v\n\n", vs, fs)
+	}
+}
