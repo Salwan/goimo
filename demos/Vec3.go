@@ -276,6 +276,14 @@ func (v *Vec3) CompWiseMul(other Vec3) Vec3 {
 	return Vec3{v.x * other.x, v.y * other.y, v.z * other.z}
 }
 
+// Component-wise multiply this by given vector and returns this
+func (v *Vec3) CompWiseMulEq(other Vec3) *Vec3 {
+	v.x = v.x * other.x
+	v.y = v.y * other.y
+	v.z = v.z * other.z
+	return v
+}
+
 // Returns result of components multiplied by each other
 func (v *Vec3) MulHorizontal() float64 {
 	return v.x * v.y * v.z

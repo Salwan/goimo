@@ -4,6 +4,8 @@ package demos
 // (oimo/collision/broadphase/Proxy.go)
 // A proxy is an object that can be added to a broad-phase collision detection algorithm. Users of the collision part of the library can move an axis-aligned bounding box of a proxy through `BroadPhase` class.
 
+type IProxy interface{}
+
 type Proxy struct {
 	prev *Proxy
 	next *Proxy

@@ -77,6 +77,10 @@ func (MathUtilNamespace) ToFixed8(x float64) float64 {
 	return math.Round(x*1e8) / 1e8
 }
 
+func (MathUtilNamespace) ToFixed4(x float64) float64 {
+	return math.Round(x*1e4) / 1e4
+}
+
 ////////////////////////////////////////// Vec3
 
 // Multiply (scale) src1 by src2 and store in dst
@@ -365,4 +369,16 @@ func (MathUtilNamespace) Aabb_overlap(min1, max1, min2, max2 *Vec3) bool {
 	return min1.x < max2.x && max1.x > min2.x &&
 		min1.y < max2.y && max1.y > min2.y &&
 		min1.z < max2.z && max1.z > min2.z
+}
+
+func (MathUtilNamespace) Aabb_surfaceArea(min, max *Vec3) float64 {
+	ex := max.x - min.x
+	ey := max.y - min.y
+	ez := max.z - min.z
+	return (ex*(ey+ez) + ey*ez) * 2
+}
+
+func (MathUtilNamespace) Aabb_combine(dstMin, dstMax, src1Min, src1Max, src2Min, src2Max *Vec3) {
+	MathUtil.Vec3_min(dstMin, src1Min, src2Min)
+	MathUtil.Vec3_max(dstMax, src1Max, src2Max)
 }

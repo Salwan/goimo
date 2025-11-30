@@ -19,6 +19,12 @@ type IBroadPhase interface {
 	IsOverlapping(proxy1, proxy2 *Proxy) bool
 
 	IsIncremental() bool
+
+	CreateProxy(userData any, aabb *Aabb) *Proxy
+	DestroyProxy(proxy *Proxy)
+	RayCast(begin Vec3, end Vec3, callback *BroadPhaseProxyCallback)
+	ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback)
+	AabbTest(aabb *Aabb, callback *BroadPhaseProxyCallback)
 }
 
 type BroadPhase struct {
@@ -178,6 +184,22 @@ func (bp *BroadPhase) GetProxyPairList() *ProxyPair {
 
 func (self *BroadPhase) IsIncremental() bool {
 	return self.incremental
+}
+
+func (self *BroadPhase) CreateProxy(userData any, aabb *Aabb) *Proxy {
+	panic("abstract call")
+}
+func (self *BroadPhase) DestroyProxy(proxy *Proxy) {
+	panic("abstract call")
+}
+func (self *BroadPhase) RayCast(begin Vec3, end Vec3, callback *BroadPhaseProxyCallback) {
+	panic("abstract call")
+}
+func (self *BroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback) {
+	panic("abstract call")
+}
+func (self *BroadPhase) AabbTest(aabb *Aabb, callback *BroadPhaseProxyCallback) {
+	panic("abstract call")
 }
 
 // /////////////////////////////////////////// ConvexSweepGeometry
