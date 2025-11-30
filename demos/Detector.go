@@ -5,7 +5,9 @@ package demos
 // Interface of a collision detector for narrow-phase collision detection. (size=1)
 
 type IDetector interface {
-	detectImpl(result *DetectorResult, geom1, geom2 *Geometry, tf1, tf2 *Transform, cachedData *CachedDetectorData)
+	detectImpl(result *DetectorResult, geom1, geom2 IGeometry, tf1, tf2 *Transform, cachedData *CachedDetectorData)
+
+	Detect(result *DetectorResult, geom1, geom2 IGeometry, transform1, transform2 *Transform, cachedData *CachedDetectorData)
 }
 
 type Detector struct {
@@ -40,13 +42,13 @@ func (d *Detector) addPoint(result *DetectorResult, pos1, pos2 Vec3, depth float
 	}
 }
 
-func (d *Detector) detectImpl(result *DetectorResult, geom1, geom2 *Geometry, tf1, tf2 *Transform, cachedData *CachedDetectorData) {
+func (d *Detector) detectImpl(result *DetectorResult, geom1, geom2 IGeometry, tf1, tf2 *Transform, cachedData *CachedDetectorData) {
 	// override this
 }
 
 // --- public ---
 
-func (d *Detector) Detect(result *DetectorResult, geom1, geom2 *Geometry, transform1, transform2 *Transform, cachedData *CachedDetectorData) {
+func (d *Detector) Detect(result *DetectorResult, geom1, geom2 IGeometry, transform1, transform2 *Transform, cachedData *CachedDetectorData) {
 	result.Clear()
 	if d.swapped {
 		d.detectImpl(result, geom2, geom1, transform2, transform1, cachedData)

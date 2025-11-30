@@ -84,6 +84,23 @@ func (cm *ContactManager) createContacts() {
 }
 
 func (cm *ContactManager) destroyOutdatedContacts() {
+	// whether the broadphase returns only new overlapping pairs
+	incremental := cm.broadPhase.(*BroadPhase).incremental
+
+	for c := cm.contactList; c != nil; c = c.next {
+		if c.latest {
+			// the contact is overlapping, make it old for the next step
+			c.latest = false
+			c.shouldBeSkipped = false
+			continue
+		}
+		if !incremental {
+			// the pair is separated, because the broad-phase algorithm collects
+			// all the overlapping pairs and they are marked as latest
+			cm.destroyContact(c)
+		}
+	}
+
 	// TODO
 	panic("not impl")
 }
@@ -136,6 +153,7 @@ func (cm *ContactManager) updateContacts() {
 
 func (cm *ContactManager) updateManifolds() {
 	// TODO
+	panic("not impl")
 }
 
 func (cm *ContactManager) postSolve() {
@@ -144,6 +162,11 @@ func (cm *ContactManager) postSolve() {
 			c.postSolve()
 		}
 	}
+}
+
+func (cm *ContactManager) destroyContact(contact *Contact) {
+	DoubleList_remove(&cm.contactList, &cm.contactListLast, contact)
+	contact.detach()
 }
 
 // TODO

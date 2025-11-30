@@ -24,6 +24,14 @@ func NewContactImpulse() *ContactImpulse {
 	return &ContactImpulse{}
 }
 
+func (self *ContactImpulse) clear() {
+	self.impulseN = 0
+	self.impulseT = 0
+	self.impulseB = 0
+	self.impulseP = 0
+	self.impulseL.Zero()
+}
+
 // copyFrom() isn't copying impulseP, is this on purpose?
 func (imp *ContactImpulse) copyFrom(other *ContactImpulse) {
 	imp.impulseN = other.impulseN

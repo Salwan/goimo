@@ -49,6 +49,8 @@ func NewContact() *Contact {
 	return c
 }
 
+// --- double linked list interface ---
+
 func (c *Contact) GetNext() *Contact {
 	return c.next
 }
@@ -65,7 +67,9 @@ func (c *Contact) SetPrev(x *Contact) {
 	c.prev = x
 }
 
-func (c *Contact) attachLinks() {
+// --- private ---
+
+func (c *Contact) _attachLinks() {
 	DoubleList_push(&c.b1.contactLinkList, &c.b1.contactLinkListLast, c.link1)
 	DoubleList_push(&c.b2.contactLinkList, &c.b2.contactLinkListLast, c.link2)
 	c.b1.numContactLinks++
@@ -76,7 +80,62 @@ func (c *Contact) attachLinks() {
 	c.link2.contact = c
 }
 
-func (c *Contact) sendPostSolve() {
+func (c *Contact) _detachLinks() {
+	DoubleList_remove(&c.b1.contactLinkList, &c.b1.contactLinkListLast, c.link1)
+	DoubleList_remove(&c.b2.contactLinkList, &c.b2.contactLinkListLast, c.link2)
+
+	c.b1.numContactLinks--
+	c.b2.numContactLinks--
+
+	c.link1.other = nil
+	c.link2.other = nil
+	c.link1.contact = nil
+	c.link2.contact = nil
+}
+
+func (c *Contact) _sendBeginContact() {
+	cc1 := c.s1.contactCallback
+	cc2 := c.s2.contactCallback
+	if cc1 == cc2 {
+		cc2 = nil // avoid calling twice
+	}
+	if cc1 != nil {
+		cc1.beginContact(c)
+	}
+	if cc2 != nil {
+		cc2.beginContact(c)
+	}
+}
+
+func (c *Contact) _sendEndContact() {
+	cc1 := c.s1.contactCallback
+	cc2 := c.s2.contactCallback
+	if cc1 == cc2 {
+		cc2 = nil // avoid calling twice
+	}
+	if cc1 != nil {
+		cc1.endContact(c)
+	}
+	if cc2 != nil {
+		cc2.endContact(c)
+	}
+}
+
+func (c *Contact) _sendPreSolve() {
+	cc1 := c.s1.contactCallback
+	cc2 := c.s2.contactCallback
+	if cc1 == cc2 {
+		cc2 = nil // avoid calling twice
+	}
+	if cc1 != nil {
+		cc1.preSolve(c)
+	}
+	if cc2 != nil {
+		cc2.preSolve(c)
+	}
+}
+
+func (c *Contact) _sendPostSolve() {
 	cc1 := c.s1.contactCallback
 	cc2 := c.s2.contactCallback
 	if cc1 == cc2 {
@@ -90,9 +149,7 @@ func (c *Contact) sendPostSolve() {
 	}
 }
 
-func (c *Contact) postSolve() {
-	c.sendPostSolve()
-}
+// --- internal
 
 func (c *Contact) attach(s1, s2 *Shape, detector IDetector) {
 	c.s1 = s1
@@ -100,11 +157,71 @@ func (c *Contact) attach(s1, s2 *Shape, detector IDetector) {
 	c.b1 = s1.rigidBody
 	c.b2 = s2.rigidBody
 	c.touching = false
-	c.attachLinks()
+	c._attachLinks()
 
 	c.detector = detector
 
 	c.contactConstraint.attach(s1, s2)
+}
+
+func (c *Contact) detach() {
+	if c.touching {
+		// touching in the last frame
+		c._sendEndContact()
+	}
+
+	c._detachLinks()
+	c.s1, c.s2 = nil, nil
+	c.b1, c.b2 = nil, nil
+	c.touching = false
+
+	c.cachedDetectorData.clear()
+	c.manifold.clear()
+
+	c.detector = nil
+
+	c.contactConstraint.detach()
+}
+
+func (self *Contact) updateManifold() {
+	if self.detector == nil {
+		return
+	}
+
+	ptouching := self.touching
+
+	result := self.detectorResult
+	self.detector.Detect(result, self.s1.geom, self.s2.geom, &self.s1.transform, &self.s2.transform, self.cachedDetectorData)
+
+	num := result.numPoints
+	self.touching = num > 0
+
+	if self.touching {
+		// update manifold basis
+		self.manifold.buildBasis(result.normal)
+
+		// determine position correction algorithm
+		if result.GetMaxDepth() > Settings.ContactUseAlternativePositionCorrectionAlgorithmDepthThreshold {
+			// use alternative position correction method (split impulse by default) for deeply overlapped contacts
+			self.contactConstraint.positionCorrectionAlgorithm = Settings.AlternativeContactPositionCorrectionAlgorithm
+		} else {
+			// use default position correction algorithm for slightly overlapped contacts
+			self.contactConstraint.positionCorrectionAlgorithm = Settings.DefaultContactPositionCorrectionAlgorithm
+		}
+
+		// update contact manifold
+		if result.incremental {
+			// incremental manifold
+			// HERE: just implemented ManifoldUpdater and all its depedencies
+			self.updater.incrementalUpdate(result, &self.b1.transform, &self.b2.transform)
+		}
+
+		// TODO
+	}
+}
+
+func (c *Contact) postSolve() {
+	c._sendPostSolve()
 }
 
 // TODO

@@ -63,4 +63,34 @@ func (m *Mat3) GetCol(index int) Vec3 {
 	return dst
 }
 
+// Multiplies 2 Mat3, Implements M.mat3_mul(). Returns Mat3 result
+func (m *Mat3) Mul(a, b *Mat3) Mat3 {
+	var result Mat3
+	result.e00 = a.e00*b.e00 + a.e01*b.e10 + a.e02*b.e20
+	result.e01 = a.e00*b.e01 + a.e01*b.e11 + a.e02*b.e21
+	result.e02 = a.e00*b.e02 + a.e01*b.e12 + a.e02*b.e22
+	result.e10 = a.e10*b.e00 + a.e11*b.e10 + a.e12*b.e20
+	result.e11 = a.e10*b.e01 + a.e11*b.e11 + a.e12*b.e21
+	result.e12 = a.e10*b.e02 + a.e11*b.e12 + a.e12*b.e22
+	result.e20 = a.e20*b.e00 + a.e21*b.e10 + a.e22*b.e20
+	result.e21 = a.e20*b.e01 + a.e21*b.e11 + a.e22*b.e21
+	result.e22 = a.e20*b.e02 + a.e21*b.e12 + a.e22*b.e22
+	return result
+}
+
+// Implements M.mat3_mulRhsTransposed(). Returns Mat3 with result
+func (m *Mat3) MulRhsTransposed(a, b *Mat3) Mat3 {
+	var result Mat3
+	result.e00 = a.e00*b.e00 + a.e01*b.e01 + a.e02*b.e02
+	result.e01 = a.e00*b.e10 + a.e01*b.e11 + a.e02*b.e12
+	result.e02 = a.e00*b.e20 + a.e01*b.e21 + a.e02*b.e22
+	result.e10 = a.e10*b.e00 + a.e11*b.e01 + a.e12*b.e02
+	result.e11 = a.e10*b.e10 + a.e11*b.e11 + a.e12*b.e12
+	result.e12 = a.e10*b.e20 + a.e11*b.e21 + a.e12*b.e22
+	result.e20 = a.e20*b.e00 + a.e21*b.e01 + a.e22*b.e02
+	result.e21 = a.e20*b.e10 + a.e21*b.e11 + a.e22*b.e12
+	result.e22 = a.e20*b.e20 + a.e21*b.e21 + a.e22*b.e22
+	return result
+}
+
 // TODO

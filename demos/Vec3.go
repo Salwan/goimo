@@ -100,6 +100,15 @@ func (v *Vec3) AddScaledEq(other Vec3, s float64) *Vec3 {
 	return v
 }
 
+// Returns Vec3 = this + b * s, implements M.vec3_addRhsScaled()
+func (v *Vec3) AddRhsScaled(b Vec3, s float64) Vec3 {
+	return Vec3{
+		v.x + b.x*s,
+		v.y + b.y*s,
+		v.z + b.z*s,
+	}
+}
+
 // Sets this vector to `this` - `v` and returns `this`.
 func (v *Vec3) SubEq(other Vec3) *Vec3 {
 	v.x -= other.x
@@ -146,6 +155,14 @@ func (v *Vec3) MulMat3(m *Mat3) Vec3 {
 		v.x*m.e00 + v.y*m.e01 + v.z*m.e02,
 		v.x*m.e10 + v.y*m.e11 + v.z*m.e12,
 		v.x*m.e20 + v.y*m.e21 + v.z*m.e22,
+	}
+}
+
+func (v *Vec3) MulMat3Transposed(m *Mat3) Vec3 {
+	return Vec3{
+		v.x*m.e00 + v.y*m.e10 + v.z*m.e20,
+		v.x*m.e01 + v.y*m.e11 + v.z*m.e21,
+		v.x*m.e02 + v.y*m.e12 + v.z*m.e22,
 	}
 }
 
