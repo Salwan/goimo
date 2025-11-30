@@ -4,6 +4,8 @@ package demos
 // (oimo/dynamics/rigidbody/Shape.go)
 // The abstract class of a broad-phase collision detection algorithm.
 type IBroadPhase interface {
+	GetProxyPairList() *ProxyPair
+
 	// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
 	moveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3)
 
@@ -56,6 +58,12 @@ func (bp *BroadPhase) pickAndPushProxyPair(p1 *Proxy, p2 *Proxy) {
 func (bp *BroadPhase) moveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3) {}
 
 func (bp *BroadPhase) collectPairs() {}
+
+// Public
+
+func (bp *BroadPhase) GetProxyPairList() *ProxyPair {
+	return bp.proxyPairList
+}
 
 // TODO
 

@@ -24,17 +24,7 @@ func NewContactManager(broadPhase IBroadPhase) *ContactManager {
 }
 
 func (cm *ContactManager) createContacts() {
-	// HERE: Casting to general broadphase won't work
-	// instead need to do this pattern:
-	// switch v := b.(type) {
-	// case *BroadPhase:
-	//   // cast to BroadPhase
-	// case *BvhBroadPhase:
-	//   // cast to BvhBroadPhase
-	// default:
-	//   panic("Not implemented")c
-	// }
-	for pp := cm.broadPhase.(*BroadPhase).proxyPairList; pp != nil; pp = pp.next {
+	for pp := cm.broadPhase.GetProxyPairList(); pp != nil; pp = pp.next {
 		var s1 *Shape
 		var s2 *Shape
 		if debug.Debug && pp.p1.id == pp.p2.id {
@@ -88,10 +78,9 @@ func (cm *ContactManager) createContacts() {
 			DoubleList_push(&cm.contactList, &cm.contactListLast, c)
 			c.latest = true
 			c.attach(s1, s2, cm.collisionMatrix.GetDetector(s1.geom.(*Geometry)._type, s2.geom.(*Geometry)._type))
+			cm.numContacts++
 		}
 	}
-
-	// TODO
 }
 
 func (cm *ContactManager) destroyOutdatedContacts() {

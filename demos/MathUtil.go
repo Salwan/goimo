@@ -54,12 +54,21 @@ func (MathUtilNamespace) Sqrt(x float64) float64 {
 	return math.Sqrt(x)
 }
 
-// Returns -1 if x<0, 1 otherwise
+// Returns (float64) -1.0 if x<0, 1.0 otherwise
 func (MathUtilNamespace) Sign(x float64) float64 {
 	if x < 0 {
-		return -1
+		return -1.0
 	} else {
+		return 1.0
+	}
+}
+
+// Returns (int) 1 if x>0, -1 otherwise (negative or zero)
+func (MathUtilNamespace) SignBiased(x float64) int {
+	if x > 0 {
 		return 1
+	} else {
+		return -1
 	}
 }
 

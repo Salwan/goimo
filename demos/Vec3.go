@@ -264,3 +264,7 @@ func (v *Vec3) CompWiseMul(other Vec3) Vec3 {
 func (v *Vec3) MulHorizontal() float64 {
 	return v.x * v.y * v.z
 }
+
+func (v *Vec3) IsZero() bool {
+	return v.x == 0 && v.y == 0 && v.z == 0
+}

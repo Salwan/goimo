@@ -1,5 +1,7 @@
 package demos
 
+import "fmt"
+
 ///////////////////////////// Mat3
 // (oimo/common/Mat3.go)
 // 3x3 Matrix class.
@@ -37,6 +39,28 @@ func (m *Mat3) Identity() *Mat3 {
 		0, 1, 0,
 		0, 0, 1,
 	)
+}
+
+// Extract a column from Mat3, returns Vec3
+func (m *Mat3) GetCol(index int) Vec3 {
+	var dst Vec3
+	switch index {
+	case 0:
+		dst.x = m.e00
+		dst.y = m.e10
+		dst.z = m.e20
+	case 1:
+		dst.x = m.e01
+		dst.y = m.e11
+		dst.z = m.e21
+	case 2:
+		dst.x = m.e02
+		dst.y = m.e12
+		dst.z = m.e22
+	default:
+		panic(fmt.Errorf("Mat3.GetCol: invalid index %d", index))
+	}
+	return dst
 }
 
 // TODO
