@@ -26,21 +26,67 @@ func NewBvhBroadPhase() *BvhBroadPhase {
 // --- private ---
 
 func (self *BvhBroadPhase) _addToMovedProxy(bvhProxy *BvhProxy) {
-	// TODO
-	panic("not impl")
+	// add to the buffer
+	if bvhProxy.Moved {
+		return
+	}
+	bvhProxy.Moved = true
+
+	// expand the buffer
+	if len(self.movedProxies) == self.numMovedProxies {
+		self.movedProxies = Array_expand(self.movedProxies)
+	}
+
+	self.movedProxies[self.numMovedProxies] = bvhProxy
+	self.numMovedProxies++
 }
 
-func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb Aabb, displacement Vec3) {
-	// TODO
-	panic("not impl")
+// displacement can be nil
+func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb Aabb, displacement *Vec3) {
+	// set tight AABB
+	p.setAabb(aabb)
+
+	// fatten the AABB
+	padding := Settings.BvhProxyPadding
+	paddingVec := Vec3{padding, padding, padding}
+	p.aabbMin.SubEq(paddingVec)
+	p.aabbMax.AddEq(paddingVec)
+
+	if displacement != nil {
+		// predict movement
+		var zero Vec3
+		var addToMin, addToMax Vec3
+		MathUtil.Vec3_min(&addToMin, &zero, displacement)
+		MathUtil.Vec3_max(&addToMax, &zero, displacement)
+		p.aabbMin.Add(addToMin)
+		p.aabbMax.Add(addToMax)
+	}
 }
 
-func (self *BvhBroadPhase) _collide(n1 *BvhNode, n2 *BvhNode) {
-	// TODO
-	panic("not impl")
+func (self *BvhBroadPhase) _collide(n1, n2 *BvhNode) {
+	self.testCount++
+	l1 := n1.height == 0
+	l2 := n2.height == 0
+	if n1 == n2 {
+		if l1 {
+			return
+		}
+		self._collide(n1.children[0], n2)
+		self._collide(n2.children[1], n2)
+		return
+	}
+
+	if !MathUtil.Aabb_overlap(&n1.aabbMin, &n1.aabbMax, &n2.aabbMin, &n2.aabbMax) {
+		return
+	}
+	if l1 && l2 {
+		// HERE: switch BroadPhase *Proxy to use IProxy for this to work
+		self._pickAndPushProxyPair(n1.proxy, n2.proxy)
+		return
+	}
 }
 
-func (self *BvhBroadPhase) _rayCastRecursive(node *BvhNode, _p1 Vec3, _p2 Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) _rayCastRecursive(node *BvhNode, _p1, _p2 Vec3, callback *BroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
