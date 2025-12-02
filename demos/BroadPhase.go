@@ -162,7 +162,7 @@ func (self *BroadPhase) aabbConvexSweepTest(aabbMin, aabbMax Vec3, convex IConve
 	self.aabb.max = aabbMax
 	self.convexSweep.Set(convex, begin, translation)
 
-	if GjkEpaInstance.ComputeDistance(self.convexSweep, self.aabb, begin, &self.identity, nil) == _SUCCEEDED {
+	if GjkEpaInstance.ComputeDistance(self.convexSweep, self.aabb, begin, &self.identity, nil) == GjkEpaResultState_SUCCEEDED {
 		return GjkEpaInstance.Distance <= 0
 	}
 	return false

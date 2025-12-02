@@ -107,7 +107,7 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 	for count < max {
 		// project the origin to the simplex and compute index of voronoi region of the origin.
 		v := 0
-		debug.GjkLog("simplex size: $simplexSize")
+		debug.GjkLog("simplex size: %v", self.simplexSize)
 		debug.GjkLog("projecting the origin to the simplex...")
 		switch self.simplexSize {
 		case 1:
@@ -135,7 +135,7 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 		if self.closest.LengthSq() < eps2 {
 			if !useEpa {
 				self.Distance = 0
-				return _SUCCEEDED
+				return GjkEpaResultState_SUCCEEDED
 			}
 
 			// make the simplex to be a tetrahedron for EPA computation
@@ -152,20 +152,20 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 			}
 			if self.simplexSize == 4 {
 				epaState := self._computeDepth(c1, c2, tf1, tf2, &self.s, &self.w1, &self.w2)
-				if epaState != _SUCCEEDED {
+				if epaState != GjkEpaResultState_SUCCEEDED {
 					self.Distance = 0
 					return epaState
 				}
 				self.Distance = -self.depth
-				return _SUCCEEDED
+				return GjkEpaResultState_SUCCEEDED
 			}
 
 			// failed to make a tetrahedron
 			self.Distance = 0
-			return _GJK_FAILED_TO_MAKE_TETRAHEDRON
+			return GjkEpaResultState_GJK_FAILED_TO_MAKE_TETRAHEDRON
 		}
 
-		debug.GjkLog("projected origin: $v")
+		debug.GjkLog("projected origin: %v", v)
 
 		// shrink the simplex according to the voronoi index of the origin
 		self._shrinkSimplex(v)
@@ -181,7 +181,7 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 		d1 := self.closest.Dot(self.dir)
 		d2 := self.s[self.simplexSize].Dot(self.dir)
 
-		debug.GjkLog("n: $simplexSize, prev: $closest, current: ${s[simplexSize]}, dir: $dir, iteration: $count, d2 - d1: ${d2 - d1}")
+		debug.GjkLog("n: %v, prev: %v, current: %v, dir: %v, iteration: %v, d2 - d1: %v", self.simplexSize, self.closest, self.s[self.simplexSize], self.dir, count, d2-d1)
 
 		if d2-d1 < eps2 { // terminate GJK; no improvement
 			self._interpolateClosestPoints()
@@ -194,7 +194,7 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 				self._saveCache(cache.gjkCache)
 			}
 
-			return _SUCCEEDED
+			return GjkEpaResultState_SUCCEEDED
 		}
 
 		self.simplexSize++
@@ -202,11 +202,11 @@ func (self *GjkEpa) _computeClosestPointsImpl(c1, c2 IConvexGeometry, tf1, tf2 *
 	}
 
 	debug.GjkLog("GJK failed: did not converge")
-	return _GJK_DID_NOT_CONVERGE
+	return GjkEpaResultState_GJK_DID_NOT_CONVERGE
 }
 
 // `c1` can be nil
-func (ge *GjkEpa) _convexCastImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, tl1, tl2 *Vec3, hit *RayCastHit) bool {
+func (ge *GjkEpa) _convexCastImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, tl1, tl2 Vec3, hit *RayCastHit) bool {
 	debug.GjkLog("----------- GJK convex casting begin -----------")
 
 	ge.c1 = c1
@@ -243,7 +243,7 @@ func (ge *GjkEpa) _convexCastImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, t
 	rayR := &ge.rayR // relative translation
 
 	rayX.Zero()
-	MathUtil.Vec3_sub(rayR, tl2, tl1)
+	MathUtil.Vec3_sub(rayR, &tl2, &tl1)
 
 	eps := 1e-4
 	eps2 := eps * eps
@@ -296,7 +296,7 @@ func (ge *GjkEpa) _convexCastImpl(c1, c2 IConvexGeometry, tf1, tf2 *Transform, t
 			hit.Fraction = lambda
 			hit.Normal = dir.Normalized()
 			hit.Position = ge.ClosestPoint1
-			hit.Position.AddScaledEq(*tl1, lambda)
+			hit.Position.AddScaledEq(tl1, lambda)
 			debug.GjkLog("GJK convex cast succeeded")
 			return true
 		}
@@ -524,7 +524,7 @@ func (ge *GjkEpa) _computeWitnessPoint1(addMargin bool) {
 	idir := ge.dir
 
 	// compute local dir
-	MathUtil.Vec3_mulMat3Transposed(&ge.dir, &ge.dir, &ge.tf1.rotation)
+	ge.dir = ge.dir.MulMat3Transposed(&ge.tf1.rotation)
 
 	// compute local witness point
 	ge.c1.ComputeLocalSupportingVertex(ge.dir, &ge.w1[ge.simplexSize])
@@ -547,7 +547,7 @@ func (ge *GjkEpa) _computeWitnessPoint2(addMargin bool) {
 	idir := ge.dir
 
 	// compute local dir
-	MathUtil.Vec3_mulMat3Transposed(&ge.dir, &ge.dir, &ge.tf2.rotation)
+	ge.dir = ge.dir.MulMat3Transposed(&ge.tf2.rotation)
 	ge.dir.NegateEq()
 
 	// compute local witness point
@@ -568,68 +568,252 @@ func (ge *GjkEpa) _computeWitnessPoint2(addMargin bool) {
 }
 
 func (self *GjkEpa) _pointToTetrahedron() {
-	// TODO
-	panic("not impl")
+	for i := range 3 {
+		self.dir.CopyFrom(self.baseDirs[i])
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+		self._lineToTetrahedron()
+		if self.simplexSize == 4 {
+			break
+		}
+		self.simplexSize--
+
+		self.dir.NegateEq()
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+		self._lineToTetrahedron()
+		if self.simplexSize == 4 {
+			break
+		}
+		self.simplexSize--
+	}
 }
 
 func (self *GjkEpa) _lineToTetrahedron() {
-	// TODO
-	panic("not impl")
+	oldDir := self.dir
+
+	s0 := self.s[0]
+	s1 := self.s[1]
+	lineDir := s0.Sub(s1)
+	for i := range 3 {
+		baseDir := self.baseDirs[i]
+		newDir := lineDir.Cross(baseDir)
+		self.dir = newDir
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+		self._triangleToTetrahedron()
+		if self.simplexSize == 4 {
+			break
+		}
+		self.simplexSize--
+
+		self.dir.NegateEq()
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+		self._triangleToTetrahedron()
+		if self.simplexSize == 4 {
+			break
+		}
+		self.simplexSize--
+	}
+
+	self.dir = oldDir
 }
 
 func (self *GjkEpa) _triangleToTetrahedron() {
-	// TODO
-	panic("not impl")
+	oldDir := self.dir
+	for range 1 {
+		s0 := self.s[0]
+		s1 := self.s[1]
+		s2 := self.s[2]
+		s01 := s1.Sub(s0)
+		s02 := s2.Sub(s0)
+		n := s01.Cross(s02)
+		self.dir = n
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+		if self._isValidTetrahedron() {
+			break
+		}
+		self.simplexSize--
+
+		self.dir.NegateEq()
+
+		self._computeSupportingVertex()
+		self.simplexSize++
+
+		if self._isValidTetrahedron() {
+			break
+		}
+		self.simplexSize--
+	}
+	self.dir = oldDir
 }
 
-func (self *GjkEpa) isValidTetrahedron() bool {
-	// TODO
-	panic("not impl")
+func (self *GjkEpa) _isValidTetrahedron() bool {
+	e00 := self.s[1].x - self.s[0].x
+	e01 := self.s[1].y - self.s[0].y
+	e02 := self.s[1].z - self.s[0].z
+	e10 := self.s[2].x - self.s[0].x
+	e11 := self.s[2].y - self.s[0].y
+	e12 := self.s[2].z - self.s[0].z
+	e20 := self.s[3].x - self.s[0].x
+	e21 := self.s[3].y - self.s[0].y
+	e22 := self.s[3].z - self.s[0].z
+	det := e00*(e11*e22-e12*e21) - e01*(e10*e22-e12*e20) + e02*(e10*e21-e11*e20)
+	return det > 1e-12 || det < -1e-12
 }
 
 // EPA
 
 func (self *GjkEpa) _computeDepth(convex1, convex2 IConvexGeometry, tf1, tf2 *Transform, initialPolyhedron, initialPolyhedron1, initialPolyhedron2 *[]Vec3) GjkEpaResultState {
-	// TODO
-	panic("not impl")
+	debug.GjkLog("----------- EPA begin ----------- ")
+
+	self.polyhedron.clear()
+	if !self.polyhedron.init(
+		self.polyhedron.pickVertex().Set((*initialPolyhedron)[0], (*initialPolyhedron1)[0], (*initialPolyhedron2)[0]),
+		self.polyhedron.pickVertex().Set((*initialPolyhedron)[1], (*initialPolyhedron1)[1], (*initialPolyhedron2)[1]),
+		self.polyhedron.pickVertex().Set((*initialPolyhedron)[2], (*initialPolyhedron1)[2], (*initialPolyhedron2)[2]),
+		self.polyhedron.pickVertex().Set((*initialPolyhedron)[3], (*initialPolyhedron1)[3], (*initialPolyhedron2)[3])) {
+		debug.GjkLog("EPA failed at initialization: %v", self.polyhedron.status)
+		return GjkEpaResultState_EPA_FAILED_TO_INIT
+	}
+
+	self.simplexSize = 0
+	supportingVertex := &self.s[0]
+	witness1 := &self.w1[0]
+	witness2 := &self.w2[0]
+	count := 0
+	maxIterations := 40
+
+	for count < maxIterations {
+		face := self.polyhedron.getBestTriangle()
+
+		if debug.Debug {
+			debug.GjkLog("nearest face:")
+			face.dump()
+		}
+
+		self.dir.CopyFrom(face.normal).Normalize()
+		self._computeSupportingVertex()
+
+		v0 := face.vertices[0]
+		v1 := face.vertices[1]
+		v2 := face.vertices[2]
+
+		dot1 := v0.v.Dot(self.dir)
+		dot2 := supportingVertex.Dot(self.dir)
+
+		debug.GjkLog("got new vertex: %v", supportingVertex)
+		debug.GjkLog("improvement: %v -> %v, normal: %v", dot1, dot2, self.dir)
+
+		if dot2-dot1 < 1e-6 || count == maxIterations-1 { // no improvement
+			self.closest.CopyFrom(self.dir).ScaleEq(self.dir.Dot(v0.v) / self.dir.LengthSq())
+
+			c := self.closest
+			s0 := v0.v
+			s1 := v1.v
+			s2 := v2.v
+			w10 := v0.w1
+			w11 := v1.w1
+			w12 := v2.w1
+			w20 := v0.w2
+			w21 := v1.w2
+			w22 := v2.w2
+
+			s01 := s1.Sub(s0)
+			s02 := s2.Sub(s0)
+			s0c := c.Sub(s0)
+
+			d11 := s01.Dot(s01)
+			d12 := s01.Dot(s02)
+			d22 := s02.Dot(s02)
+			d1c := s01.Dot(s0c)
+			d2c := s02.Dot(s0c)
+			invDet := d11*d22 - d12*d12
+			if invDet != 0 {
+				invDet = 1.0 / invDet
+			}
+			s := (d1c*d22 - d2c*d12) * invDet
+			t := (-d1c*d12 + d2c*d11) * invDet
+
+			// compute closest points
+			diff := w11.Sub(w10)
+			cp1 := w10.AddRhsScaled(diff, s)
+			diff = w12.Sub(w10)
+			cp1 = cp1.AddRhsScaled(diff, t)
+
+			diff = w21.Sub(w20)
+			cp2 := w20.AddRhsScaled(diff, s)
+			diff = w22.Sub(w20)
+			cp2 = cp2.AddRhsScaled(diff, t)
+
+			self.ClosestPoint1 = cp1
+			self.ClosestPoint2 = cp2
+
+			self.depth = self.closest.Length()
+
+			return GjkEpaResultState_SUCCEEDED
+		}
+		epaVertex := self.polyhedron.pickVertex().Set(*supportingVertex, *witness1, *witness2)
+		if !self.polyhedron.addVertex(epaVertex, face) {
+
+			if debug.Debug {
+				debug.GjkLog("EPA failed at vertex addition: %v", self.polyhedron.status)
+				self.polyhedron.dumpAsObjModel()
+			}
+
+			return GjkEpaResultState_EPA_FAILED_TO_ADD_VERTEX
+		}
+		count++
+	}
+
+	if debug.Debug {
+		debug.GjkLog("EPA failed: did not converge.")
+		self.polyhedron.dumpAsObjModel()
+	}
+
+	return GjkEpaResultState_EPA_DID_NOT_CONVERGE
 }
 
 // --- public ---
 
 // Computes the closest points of two convex geometries `c1` and `c2` with transforms `tf1` and `tf2` respectively, and returns the status of the result (see `GjkEpaResultState` for details). If cached data `cache` is not `null`, this tries to exploit the previous result in `cache` to improve performance, and stores the new result to `cache`.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
-func (self *GjkEpa) ComputeClosestPoints(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData) int {
-	// TODO
-	panic("not impl")
+func (self *GjkEpa) ComputeClosestPoints(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData) GjkEpaResultState {
+	return self._computeClosestPointsImpl(c1, c2, tf1, tf2, cache, true)
 }
 
 // Computes the distance between two convex geometries `c1` and `c2` with transforms `tf1` and `tf2` respectively, and returns the status of the result (see `GjkEpaResultState` for details). Different from `GjkEpa.computeClosestPoints`, this does not compute negative distances and closest points if two geometries are overlapping. If cached data `cache` is not `null`, this tries to exploit the previous result in `cache` to improve performance, and stores the new result to `cache`.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
 func (self *GjkEpa) ComputeDistance(c1, c2 IConvexGeometry, tf1, tf2 *Transform, cache *CachedDetectorData) GjkEpaResultState {
-	// TODO
-	panic("not impl")
+	return self._computeClosestPointsImpl(c1, c2, tf1, tf2, cache, false)
 }
 
 // Performs a convex casting between `c1` and `c2`. Returns `true` and sets the result information to `hit` if the convex geometries intersect. Each convex geometries translates by `tl1` and `tl2`, starting from the beginning transforms `tf1` and `tf2` respectively.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
-func (self *GjkEpa) ConvexCast(c1, c2 IConvexGeometry, tf, tf2 *Transform, tl1, tl2 Vec3, hit *RayCastHit) bool {
-	// TODO
-	panic("not impl")
+func (self *GjkEpa) ConvexCast(c1, c2 IConvexGeometry, tf1, tf2 *Transform, tl1, tl2 Vec3, hit *RayCastHit) bool {
+	return self._convexCastImpl(c1, c2, tf1, tf2, tl1, tl2, hit)
 }
 
 // Performs ray casting against the convex geometry `c` with transform `tf`. Returns `true` and sets the result information to `hit` if the line segment from `begin` to `end` intersects the convex geometry. Otherwise returns `false`.
 // Set the compiler option `OIMO_GJK_EPA_DEBUG` for debugging (warning: massive logging).
-func (ge *GjkEpa) RayCast(c IConvexGeometry, tf *Transform, begin, end Vec3, hit *RayCastHit) bool {
-	ge.tf1.position = begin
+func (self *GjkEpa) RayCast(c IConvexGeometry, tf *Transform, begin, end Vec3, hit *RayCastHit) bool {
+	tf1 := &self.tempTransform
+	tf2 := tf
 
-	// This temp ref looks like no-op to me, but I'm copying as is
-	tl1 := &ge.tl1
-	tl2 := &ge.tl2
+	tf1.position = begin
 
-	MathUtil.Vec3_sub(tl1, &end, &begin)
+	tl1 := &self.tl1
+	tl2 := &self.tl2
+
+	tl1.CopyFrom(end).SubEq(begin)
 	tl2.Zero()
 
-	return ge._convexCastImpl(nil, c, &ge.tempTransform, tf, tl1, tl2, hit)
+	return self._convexCastImpl(nil, c, tf1, tf2, *tl1, *tl2, hit)
 }
-
-// TODO
