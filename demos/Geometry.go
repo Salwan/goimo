@@ -54,3 +54,7 @@ func (geo *Geometry) RayCast(begin, end Vec3, transform *Transform, hit *RayCast
 
 	return false
 }
+
+func (geo *Geometry) GetType() GeometryType {
+	return geo._type
+}

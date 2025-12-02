@@ -86,34 +86,34 @@ func (self *BvhBroadPhase) _collide(n1, n2 *BvhNode) {
 	}
 }
 
-func (self *BvhBroadPhase) _rayCastRecursive(node *BvhNode, _p1, _p2 Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) _rayCastRecursive(node *BvhNode, _p1, _p2 Vec3, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) _convexCastRecursive(node *BvhNode, convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) _convexCastRecursive(node *BvhNode, convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) _aabbTestRecursive(node *BvhNode, aabb Aabb, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) _aabbTestRecursive(node *BvhNode, aabb Aabb, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
 
 // --- public ---
 
-func (self *BvhBroadPhase) CreateProxy(userData any, aabb *Aabb) *Proxy {
+func (self *BvhBroadPhase) CreateProxy(userData any, aabb *Aabb) IProxy {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) DestroyProxy(proxy *Proxy) {
+func (self *BvhBroadPhase) DestroyProxy(proxy IProxy) {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) MoveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3) {
+func (self *BvhBroadPhase) MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3) {
 	// TODO
 	panic("not impl")
 }
@@ -160,17 +160,17 @@ func (self *BvhBroadPhase) CollectPairs() {
 	self.numMovedProxies = 0
 }
 
-func (self *BvhBroadPhase) RayCast(begin Vec3, end Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }
 
-func (self *BvhBroadPhase) AabbTest(aabb *Aabb, callback *BroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback) {
 	// TODO
 	panic("not impl")
 }

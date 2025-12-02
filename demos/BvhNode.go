@@ -16,7 +16,7 @@ type BvhNode struct {
 	childIndex int // must be 0 or 1 regardless of having parent
 	parent     *BvhNode
 	height     int
-	proxy      *BvhProxy
+	proxy      IProxy
 
 	// node's aabb. if the node is a leaf, the aabb is equal to the proxy's one.
 	aabbMin Vec3

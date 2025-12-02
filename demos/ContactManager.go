@@ -29,16 +29,16 @@ func (cm *ContactManager) _createContacts() {
 	for pp := cm.broadPhase.GetProxyPairList(); pp != nil; pp = pp.next {
 		var s1 *Shape
 		var s2 *Shape
-		if debug.Debug && pp.p1.id == pp.p2.id {
+		if debug.Debug && pp.p1.GetID() == pp.p2.GetID() {
 			panic("OimoPhysics asserts here")
 		}
 
-		if pp.p1.id < pp.p2.id {
-			s1 = pp.p1.userData.(*Shape)
-			s2 = pp.p2.userData.(*Shape)
+		if pp.p1.GetID() < pp.p2.GetID() {
+			s1 = pp.p1.GetUserData().(*Shape)
+			s2 = pp.p2.GetUserData().(*Shape)
 		} else {
-			s1 = pp.p2.userData.(*Shape)
-			s2 = pp.p1.userData.(*Shape)
+			s1 = pp.p2.GetUserData().(*Shape)
+			s2 = pp.p1.GetUserData().(*Shape)
 		}
 
 		// collision filtering
@@ -125,7 +125,6 @@ func (self *ContactManager) _destroyOutdatedContacts() {
 		}
 
 		// the proxies are overlapping, but AABBs might be separated
-		//aabbOverlapping := M.aabb_overlap(aabb1._min, aabb1._max, aabb2._min, aabb2._max)
 		aabbOverlapping := MathUtil.Aabb_overlap(&aabb1.Min, &aabb1.Max, &aabb2.Min, &aabb2.Max)
 		// needs narrow-phase collision detection if AABBs are overlapping
 		c.shouldBeSkipped = !aabbOverlapping
@@ -202,7 +201,6 @@ func (self *ContactManager) destroyContact(contact *Contact) {
 	contact.detach()
 
 	// put it into the pool
-	//M.singleList_pool(_contactPool, _next, contact)
 	SingleList_pool(&self.contactPool, contact)
 
 	self.numContacts--

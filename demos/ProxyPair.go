@@ -7,8 +7,8 @@ package demos
 type ProxyPair struct {
 	next *ProxyPair
 
-	p1 *Proxy
-	p2 *Proxy
+	p1 IProxy
+	p2 IProxy
 }
 
 func NewProxyPair() *ProxyPair {

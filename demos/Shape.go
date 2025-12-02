@@ -21,7 +21,7 @@ type Shape struct {
 
 	aabb Aabb
 
-	proxy *Proxy
+	proxy IProxy
 
 	collisionGroup int
 	collisionMask  int

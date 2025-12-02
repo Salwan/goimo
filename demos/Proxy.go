@@ -4,11 +4,17 @@ package demos
 // (oimo/collision/broadphase/Proxy.go)
 // A proxy is an object that can be added to a broad-phase collision detection algorithm. Users of the collision part of the library can move an axis-aligned bounding box of a proxy through `BroadPhase` class.
 
-type IProxy interface{}
+type IProxy interface {
+	IDoubleLinkINode[IProxy]
+	GetID() int
+	GetAabbMin() Vec3
+	GetAabbMax() Vec3
+	GetUserData() any
+}
 
 type Proxy struct {
-	prev *Proxy
-	next *Proxy
+	prev IProxy
+	next IProxy
 
 	// flattened aabb
 	aabbMin Vec3
@@ -30,19 +36,19 @@ func NewProxy(userData any, id int) *Proxy {
 
 // --- double linked list interface ---
 
-func (self *Proxy) GetNext() *Proxy {
+func (self *Proxy) GetINext() IProxy {
 	return self.next
 }
 
-func (self *Proxy) SetNext(x *Proxy) {
+func (self *Proxy) SetINext(x IProxy) {
 	self.next = x
 }
 
-func (self *Proxy) GetPrev() *Proxy {
+func (self *Proxy) GetIPrev() IProxy {
 	return self.prev
 }
 
-func (self *Proxy) SetPrev(x *Proxy) {
+func (self *Proxy) SetIPrev(x IProxy) {
 	self.prev = x
 }
 
@@ -56,8 +62,20 @@ func (self *Proxy) setAabb(aabb Aabb) {
 // --- public ---
 
 // Returns the unique if of the proxy
-func (self *Proxy) GetId() int {
+func (self *Proxy) GetID() int {
 	return self.id
+}
+
+func (self *Proxy) GetAabbMin() Vec3 {
+	return self.aabbMin
+}
+
+func (self *Proxy) GetAabbMax() Vec3 {
+	return self.aabbMax
+}
+
+func (self *Proxy) GetUserData() any {
+	return self.userData
 }
 
 // Returns the fat AABB of the proxy.

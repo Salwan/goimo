@@ -37,7 +37,7 @@ func (self *BvhTree) print(root *BvhNode, indent string) {
 		return
 	}
 	if root.height == 0 {
-		debug.GjkLog("%v%v", indent, root.proxy.id)
+		debug.GjkLog("%v%v", indent, root.proxy.GetID())
 	} else {
 		self.print(root.children[0], indent+"  ")
 		debug.GjkLog("%v#%v, %v", indent, root.height, MathUtil.ToFixed4(root.perimeter()))
@@ -176,7 +176,7 @@ func (self *BvhTree) _decompose() {
 func (self *BvhTree) _deleteRecursive(root *BvhNode) {
 	if root.height == 0 {
 		BvhNode_remove(&self.leafList, &self.leafListLast, root)
-		root.proxy.Leaf = nil
+		root.proxy.(*BvhProxy).Leaf = nil
 		self._pool(root)
 		return
 	}
@@ -204,8 +204,8 @@ func (self *BvhTree) _buildTopDownRecursive(leaves []*BvhNode, from int, until i
 	if num == 1 {
 		leaf := leaves[from]
 		proxy := leaf.proxy
-		leaf.aabbMin = proxy.aabbMin
-		leaf.aabbMax = proxy.aabbMax
+		leaf.aabbMin = proxy.GetAabbMin()
+		leaf.aabbMax = proxy.GetAabbMax()
 		return leaf
 	}
 
@@ -469,7 +469,7 @@ func (self *BvhTree) _balance(node *BvhNode) *BvhNode {
 
 func (self *BvhTree) _assertBeLeaf(leaf *BvhNode) {
 	if debug.Debug {
-		if leaf.proxy != nil && leaf.proxy.Leaf == leaf && leaf.children[0] == nil && leaf.children[1] == nil && leaf.height == 0 {
+		if leaf.proxy != nil && leaf.proxy.(*BvhProxy).Leaf == leaf && leaf.children[0] == nil && leaf.children[1] == nil && leaf.height == 0 {
 			// all good
 		} else {
 			panic("Oimo asserts here")
@@ -479,7 +479,7 @@ func (self *BvhTree) _assertBeLeaf(leaf *BvhNode) {
 
 func (self *BvhTree) _pool(node *BvhNode) {
 	if debug.Debug {
-		if node.proxy == nil || node.proxy.Leaf == nil {
+		if node.proxy == nil || node.proxy.(*BvhProxy).Leaf == nil {
 			// no problem
 		} else {
 			panic("Oimo asserts here")

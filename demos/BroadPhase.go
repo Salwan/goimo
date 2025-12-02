@@ -9,29 +9,29 @@ type IBroadPhase interface {
 	GetProxyPairList() *ProxyPair
 
 	// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
-	MoveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3)
+	MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3)
 
 	// Collects overlapping pairs of the proxies and put them into a linked list. The linked list can be get through `BroadPhase.getProxyPairList` method.
 	// Note that in order to collect pairs, the broad-phase algorithm requires to be informed of movements of proxies through `BroadPhase.moveProxy` method.
 	CollectPairs()
 
 	// Returns whether the pair of `proxy1` and `proxy2` is overlapping. As proxies can be larger than the containing AABBs, two proxies may overlap even though their inner AABBs are separate.
-	IsOverlapping(proxy1, proxy2 *Proxy) bool
+	IsOverlapping(proxy1, proxy2 IProxy) bool
 
 	IsIncremental() bool
 
-	CreateProxy(userData any, aabb *Aabb) *Proxy
-	DestroyProxy(proxy *Proxy)
-	RayCast(begin Vec3, end Vec3, callback *BroadPhaseProxyCallback)
-	ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback)
-	AabbTest(aabb *Aabb, callback *BroadPhaseProxyCallback)
+	CreateProxy(userData any, aabb *Aabb) IProxy
+	DestroyProxy(proxy IProxy)
+	RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback)
+	ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback)
+	AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback)
 }
 
 type BroadPhase struct {
 	_type         BroadPhaseType
 	numProxies    int
-	proxyList     *Proxy
-	proxyListLast *Proxy
+	proxyList     IProxy
+	proxyListLast IProxy
 
 	proxyPairList *ProxyPair
 	incremental   bool
@@ -61,7 +61,7 @@ func NewBroadPhase(_type_ BroadPhaseType) *BroadPhase {
 
 // --- private ---
 
-func (bp *BroadPhase) _pickAndPushProxyPair(p1 *Proxy, p2 *Proxy) {
+func (bp *BroadPhase) _pickAndPushProxyPair(p1, p2 IProxy) {
 	pp := SingleList_pick(&bp.proxyPairPool, NewProxyPair)
 	SingleList_addFirst(&bp.proxyPairList, pp)
 	pp.p1 = p1
@@ -85,14 +85,14 @@ func (self *BroadPhase) _poolProxyPairs() {
 	}
 }
 
-func (self *BroadPhase) _addProxy(p *Proxy) {
+func (self *BroadPhase) _addProxy(p IProxy) {
 	self.numProxies++
-	DoubleList_push(&self.proxyList, &self.proxyListLast, p)
+	self.proxyList, self.proxyListLast = DoubleListInterface_push(self.proxyList, self.proxyListLast, p)
 }
 
-func (self *BroadPhase) _removeProxy(p *Proxy) {
+func (self *BroadPhase) _removeProxy(p IProxy) {
 	self.numProxies--
-	DoubleList_remove(&self.proxyList, &self.proxyListLast, p)
+	self.proxyList, self.proxyListLast = DoubleListInterface_remove(self.proxyList, self.proxyListLast, p)
 }
 
 func (self *BroadPhase) _aabbSegmentTest(aabbMin, aabbMax, begin, end Vec3) bool {
@@ -169,9 +169,9 @@ func (self *BroadPhase) aabbConvexSweepTest(aabbMin, aabbMax Vec3, convex IConve
 
 // --- public ---
 
-func (bp *BroadPhase) MoveProxy(proxy *Proxy, aabb *Aabb, displacement Vec3) {}
+func (bp *BroadPhase) MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3) {}
 
-func (bp *BroadPhase) IsOverlapping(proxy1, proxy2 *Proxy) bool {
+func (bp *BroadPhase) IsOverlapping(proxy1, proxy2 IProxy) bool {
 	// TODO
 	panic("not impl")
 }
@@ -186,19 +186,19 @@ func (self *BroadPhase) IsIncremental() bool {
 	return self.incremental
 }
 
-func (self *BroadPhase) CreateProxy(userData any, aabb *Aabb) *Proxy {
+func (self *BroadPhase) CreateProxy(userData any, aabb *Aabb) IProxy {
 	panic("abstract call")
 }
-func (self *BroadPhase) DestroyProxy(proxy *Proxy) {
+func (self *BroadPhase) DestroyProxy(proxy IProxy) {
 	panic("abstract call")
 }
-func (self *BroadPhase) RayCast(begin Vec3, end Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BroadPhase) RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback) {
 	panic("abstract call")
 }
-func (self *BroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback *BroadPhaseProxyCallback) {
+func (self *BroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
 	panic("abstract call")
 }
-func (self *BroadPhase) AabbTest(aabb *Aabb, callback *BroadPhaseProxyCallback) {
+func (self *BroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback) {
 	panic("abstract call")
 }
 
