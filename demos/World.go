@@ -226,10 +226,33 @@ func (w *World) AddRigidBody(rigidBody *RigidBody) {}
 
 // TODO
 
+// ray cast wrapper (broadphase -> world)
+type RayCastWrapper struct { // implements IBroadPhaseProxyCallback
+	callback IRayCastCallback
+	begin    Vec3
+	end      Vec3
+
+	rayCastHit *RayCastHit
+}
+
+func NewRayCastWrapper() *RayCastWrapper {
+	return &RayCastWrapper{
+		rayCastHit: NewRayCastHit(),
+	}
+}
+
+func (self *RayCastWrapper) Process(proxy IProxy) { // override
+	shape := proxy.(*Proxy).userData.(*Shape)
+
+	if shape.geom.RayCast(self.begin, self.end, &shape.transform, self.rayCastHit) {
+		self.callback.Process(shape, self.rayCastHit)
+	}
+}
+
 // convex cast wrapper (broadphase -> world)
 type ConvexCastWrapper struct { // implements IBroadPhaseProxyCallback
 	callback    IRayCastCallback
-	begin       *Transform
+	begin       Transform
 	translation Vec3
 	convex      IConvexGeometry
 
@@ -240,7 +263,6 @@ type ConvexCastWrapper struct { // implements IBroadPhaseProxyCallback
 func NewConvexCastWrapper() *ConvexCastWrapper {
 	return &ConvexCastWrapper{
 		rayCastHit: NewRayCastHit(),
-		begin:      NewTransform(),
 	}
 }
 
@@ -253,7 +275,7 @@ func (self *ConvexCastWrapper) Process(proxy IProxy) { // override
 	}
 
 	geom := shape.geom
-	if GjkEpaInstance.ConvexCast(self.convex, geom.(IConvexGeometry), self.begin, &shape.transform, self.translation, self.zero, self.rayCastHit) {
+	if GjkEpaInstance.ConvexCast(self.convex, geom.(IConvexGeometry), &self.begin, &shape.transform, self.translation, self.zero, self.rayCastHit) {
 		self.callback.Process(shape, self.rayCastHit)
 	}
 }
