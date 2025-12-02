@@ -76,7 +76,8 @@ func (cm *ContactManager) _createContacts() {
 		// if not found, create a new contact
 		if !found {
 			// trying to pick an object up from the pool
-			c := SingleList_pick(&cm.contactPool, NewContact)
+			var c *Contact
+			cm.contactPool, c = SingleList_pick(cm.contactPool, NewContact)
 			DoubleList_push(&cm.contactList, &cm.contactListLast, c)
 			c.latest = true
 			c.attach(s1, s2, cm.collisionMatrix.GetDetector(s1.geom.(*Geometry)._type, s2.geom.(*Geometry)._type))
@@ -201,7 +202,7 @@ func (self *ContactManager) destroyContact(contact *Contact) {
 	contact.detach()
 
 	// put it into the pool
-	SingleList_pool(&self.contactPool, contact)
+	self.contactPool = SingleList_pool(self.contactPool, contact)
 
 	self.numContacts--
 }

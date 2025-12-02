@@ -38,12 +38,14 @@ func NewEpaPolyhedron() *EpaPolyhedron {
 // --- private ---
 
 func (self *EpaPolyhedron) _pickTriangle() *EpaTriangle {
-	return SingleList_pick(&self.trianglePool, NewEpaTriangle)
+	var t *EpaTriangle
+	self.trianglePool, t = SingleList_pick(self.trianglePool, NewEpaTriangle)
+	return t
 }
 
 func (self *EpaPolyhedron) _poolTriangle(t *EpaTriangle) {
 	t.removeReferences()
-	SingleList_pool(&self.trianglePool, t)
+	self.trianglePool = SingleList_pool(self.trianglePool, t)
 }
 
 func (self *EpaPolyhedron) _setAdjacentTriangle(t1, t2 *EpaTriangle) {
@@ -156,12 +158,14 @@ func (self *EpaPolyhedron) _removeTriangle(t *EpaTriangle) {
 // --- internal ---
 
 func (self *EpaPolyhedron) pickVertex() *EpaVertex {
-	return SingleList_pick(&self.vertexPool, NewEpaVertex)
+	var v *EpaVertex
+	self.vertexPool, v = SingleList_pick(self.vertexPool, NewEpaVertex)
+	return v
 }
 
 func (self *EpaPolyhedron) poolVertex(v *EpaVertex) {
 	v.removeReferences()
-	SingleList_pool(&self.vertexPool, v)
+	self.vertexPool = SingleList_pool(self.vertexPool, v)
 }
 
 func (self *EpaPolyhedron) clear() {

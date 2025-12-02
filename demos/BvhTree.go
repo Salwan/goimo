@@ -486,9 +486,11 @@ func (self *BvhTree) _pool(node *BvhNode) {
 		}
 	}
 	node.removeReferences()
-	SingleList_pool(&self.nodePool, node)
+	self.nodePool = SingleList_pool(self.nodePool, node)
 }
 
 func (self *BvhTree) _pick() *BvhNode {
-	return SingleList_pick(&self.nodePool, NewBvhNode)
+	var bn *BvhNode
+	self.nodePool, bn = SingleList_pick(self.nodePool, NewBvhNode)
+	return bn
 }

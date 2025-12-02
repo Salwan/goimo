@@ -16,42 +16,47 @@ type ISingleLinkNode[N any] interface {
 
 //////////////////////////////////////// Single List
 
-// add to front: head is *N (so if N is *MyNode, head is **MyNode)
+// add to front: head is *N (so if N is *MyNode, head is **MyNode). Returns new head to be set.
 func SingleList_addFirst[N interface {
 	ISingleLinkNode[N]
 	comparable
-}](head *N, n N) {
+}](head N, n N) (new_head N) {
 	var zero N
-	if *head == zero {
-		*head = n
+	new_head = head
+	if head == zero {
+		new_head = n
 	} else {
-		n.SetNext(*head)
-		*head = n
+		n.SetNext(head)
+		new_head = n
 	}
+	return
 }
 
-// Pop next available element from pool, or return nil if no elements
+// Pop next available element from pool, or return new head and new element/nil if no elements
 func SingleList_pick[N interface {
 	ISingleLinkNode[N]
 	comparable
-}](head *N, creator func() N) N {
+}](head N, creator func() N) (new_head, new_elem N) {
 	var zero N
-	if *head == zero {
-		*head = creator()
+	if head == zero {
+		head = creator()
 	}
-	n := *head
-	*head = n.GetNext()
+	new_head = head
+	n := head
+	new_head = n.GetNext()
 	n.SetNext(zero)
-	return n
+	new_elem = n
+	return
 }
 
-// Push the node 'n' onto the front of list
+// Push the node 'n' onto the front of list. Returns new head
 func SingleList_pool[N interface {
 	ISingleLinkNode[N]
 	comparable
-}](head *N, n N) {
-	n.SetNext(*head)
-	*head = n
+}](head N, n N) (new_head N) {
+	n.SetNext(head)
+	new_head = n
+	return
 }
 
 ///////////////////////////////////////////// Double List Interface

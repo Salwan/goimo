@@ -62,8 +62,9 @@ func NewBroadPhase(_type_ BroadPhaseType) *BroadPhase {
 // --- private ---
 
 func (bp *BroadPhase) _pickAndPushProxyPair(p1, p2 IProxy) {
-	pp := SingleList_pick(&bp.proxyPairPool, NewProxyPair)
-	SingleList_addFirst(&bp.proxyPairList, pp)
+	var pp *ProxyPair
+	bp.proxyPairPool, pp = SingleList_pick(bp.proxyPairPool, NewProxyPair)
+	bp.proxyPairPool = SingleList_addFirst(bp.proxyPairList, pp)
 	pp.p1 = p1
 	pp.p2 = p2
 }

@@ -25,7 +25,7 @@ func TestSingleList_addFirst(t *testing.T) {
 	c := &MyNode{ID: 3}
 
 	// Push in sequence: a, b, c --> list becomes: c -> b -> a
-	SingleList_addFirst(&head, a)
+	head = SingleList_addFirst(head, a)
 	if head != a {
 		t.Fatalf("expected head=a; got %v", head)
 	}
@@ -33,7 +33,7 @@ func TestSingleList_addFirst(t *testing.T) {
 		t.Fatalf("expected a.Next=nil; got %v", a.Next)
 	}
 
-	SingleList_addFirst(&head, b)
+	head = SingleList_addFirst(head, b)
 	if head != b {
 		t.Fatalf("expected head=b; got %v", head)
 	}
@@ -41,7 +41,7 @@ func TestSingleList_addFirst(t *testing.T) {
 		t.Fatalf("expected b.Next=a; got %v", b.Next)
 	}
 
-	SingleList_addFirst(&head, c)
+	head = SingleList_addFirst(head, c)
 	if head != c {
 		t.Fatalf("expected head=c; got %v", head)
 	}
@@ -58,12 +58,12 @@ func TestSingleList_pick_FromExisting(t *testing.T) {
 	c := &MyNode{ID: 30}
 
 	// Build list c -> b -> a
-	SingleList_addFirst(&head, a)
-	SingleList_addFirst(&head, b)
-	SingleList_addFirst(&head, c)
+	head = SingleList_addFirst(head, a)
+	head = SingleList_addFirst(head, b)
+	head = SingleList_addFirst(head, c)
 
 	// Pick should remove c first
-	p := SingleList_pick(&head, func() *MyNode {
+	head, p := SingleList_pick(head, func() *MyNode {
 		t.Fatal("creator should not be called here")
 		return nil
 	})
@@ -78,7 +78,7 @@ func TestSingleList_pick_FromExisting(t *testing.T) {
 	}
 
 	// Next pick → b
-	p = SingleList_pick(&head, func() *MyNode { t.Fatal("creator called"); return nil })
+	head, p = SingleList_pick(head, func() *MyNode { t.Fatal("creator called"); return nil })
 	if p != b {
 		t.Fatalf("expected pick=b; got %v", p)
 	}
@@ -87,7 +87,7 @@ func TestSingleList_pick_FromExisting(t *testing.T) {
 	}
 
 	// Next pick → a
-	p = SingleList_pick(&head, func() *MyNode { t.Fatal("creator called"); return nil })
+	head, p = SingleList_pick(head, func() *MyNode { t.Fatal("creator called"); return nil })
 	if p != a {
 		t.Fatalf("expected pick=a; got %v", p)
 	}
@@ -106,7 +106,7 @@ func TestSingleList_pick_UsesCreator(t *testing.T) {
 	}
 
 	// First pick should create because list is empty
-	p := SingleList_pick(&head, creator)
+	head, p := SingleList_pick(head, creator)
 	if created != 1 {
 		t.Fatalf("expected creator called once; got %d", created)
 	}
@@ -128,7 +128,7 @@ func TestSingleList_pool(t *testing.T) {
 	c := &MyNode{ID: 3}
 
 	// Push a → list: a
-	SingleList_pool(&head, a)
+	head = SingleList_pool(head, a)
 	if head != a {
 		t.Fatalf("expected head=a; got %v", head)
 	}
@@ -137,7 +137,7 @@ func TestSingleList_pool(t *testing.T) {
 	}
 
 	// Push b → list: b -> a
-	SingleList_pool(&head, b)
+	head = SingleList_pool(head, b)
 	if head != b {
 		t.Fatalf("expected head=b; got %v", head)
 	}
@@ -146,7 +146,7 @@ func TestSingleList_pool(t *testing.T) {
 	}
 
 	// Push c → list: c -> b -> a
-	SingleList_pool(&head, c)
+	head = SingleList_pool(head, c)
 	if head != c {
 		t.Fatalf("expected head=c; got %v", head)
 	}
