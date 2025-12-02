@@ -103,13 +103,18 @@ def main():
     prompt = f"""
 This project is to port OimoPhysics a 3D physics engine written using Haxe, to Go.
 
-You are a code reviewer.
+You are an expert code reviewer.
+
+Note that these are not issues:
+
+* Go range statement directly used with integer `for i := range <integer>{{}}` or in the form `for range <integer> {{}}`
+* Using `self` as the receiver name for all methods
 
 Given the following origianl Haxe file and the Go port file, compare them and write a review that identifies and lists issues in the Go file grouped into:
 
-- Errors (incorrect logic, missing parts, broken behavior)
-- Warnings (possible mistakes, suspicious differences)
-- Suggestions (cleanups, idiomatic improvements, anything else)
+- Errors (incorrect logic, missing parts, broken behavior): numbered list
+- Warnings (possible mistakes, suspicious differences): numbered list
+- Suggestions (cleanups, idiomatic improvements, anything else): numbered list
 
 Return the result **as Markdown**, using this structure:
 
@@ -119,13 +124,16 @@ Haxe file: ModuleName.hx
 Go file: ModuleName.go
 
 ## Errors
-- ...
+
+1. ...
 
 ## Warnings
-- ...
+
+1. ...
 
 ## Suggestions
-- ...
+
+1. ...
 
 --- HAXE SOURCE ---
 {haxe_code}
