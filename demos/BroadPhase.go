@@ -6,24 +6,38 @@ import "math"
 // (oimo/dynamics/rigidbody/Shape.go)
 // The abstract class of a broad-phase collision detection algorithm.
 type IBroadPhase interface {
-	GetProxyPairList() *ProxyPair
+	// Returns a new proxy connected with the user data `userData` containing the axis-aligned bounding box `aabb`, and adds the proxy into the collision space.
+	CreateProxy(userData any, aabb *Aabb) IProxy
+
+	// Removes the proxy `proxy` from the collision space.
+	DestroyProxy(proxy IProxy)
 
 	// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
 	MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3)
+
+	// Returns whether the pair of `proxy1` and `proxy2` is overlapping. As proxies can be larger than the containing AABBs, two proxies may overlap even though their inner AABBs are separate.
+	IsOverlapping(proxy1, proxy2 IProxy) bool
 
 	// Collects overlapping pairs of the proxies and put them into a linked list. The linked list can be get through `BroadPhase.getProxyPairList` method.
 	// Note that in order to collect pairs, the broad-phase algorithm requires to be informed of movements of proxies through `BroadPhase.moveProxy` method.
 	CollectPairs()
 
-	// Returns whether the pair of `proxy1` and `proxy2` is overlapping. As proxies can be larger than the containing AABBs, two proxies may overlap even though their inner AABBs are separate.
-	IsOverlapping(proxy1, proxy2 IProxy) bool
+	// Returns the linked list of collected pairs of proxies.
+	GetProxyPairList() *ProxyPair
 
+	// Returns whether to collect only pairs created in the last step. If this returns true, the pairs that are not collected might still be overlapping. Otherwise, such pairs are guaranteed to be separated.
 	IsIncremental() bool
 
-	CreateProxy(userData any, aabb *Aabb) IProxy
-	DestroyProxy(proxy IProxy)
+	// Returns the number of broad-phase AABB tests.
+	GetTestCount() int
+
+	// Performs a ray casting. `callback.process` is called for all proxies the line segment from `begin` to `end` intersects.
 	RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback)
+
+	// Performs a convex casting. `callback.process` is called for all shapes the convex geometry `convex` hits. The convex geometry translates by `translation` starting from the beginning transform `begin`.
 	ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback)
+
+	// Performs an AABB query. `callback.process` is called for all proxies that their AABB and `aabb` intersect.
 	AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback)
 }
 
@@ -56,6 +70,7 @@ func NewBroadPhase(_type_ BroadPhaseType) *BroadPhase {
 		convexSweep: NewConvexSweepGeometry(),
 		aabb:        NewAabbGeometry(),
 	}
+	b.identity.Identity()
 	return b
 }
 
@@ -64,7 +79,7 @@ func NewBroadPhase(_type_ BroadPhaseType) *BroadPhase {
 func (bp *BroadPhase) _pickAndPushProxyPair(p1, p2 IProxy) {
 	var pp *ProxyPair
 	bp.proxyPairPool, pp = SingleList_pick(bp.proxyPairPool, NewProxyPair)
-	bp.proxyPairPool = SingleList_addFirst(bp.proxyPairList, pp)
+	bp.proxyPairList = SingleList_addFirst(bp.proxyPairList, pp)
 	pp.p1 = p1
 	pp.p2 = p2
 }
@@ -170,36 +185,52 @@ func (self *BroadPhase) aabbConvexSweepTest(aabbMin, aabbMax Vec3, convex IConve
 
 // --- public ---
 
-func (bp *BroadPhase) MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3) {}
-
-func (bp *BroadPhase) IsOverlapping(proxy1, proxy2 IProxy) bool {
-	// TODO
-	panic("not impl")
+// Returns a new proxy connected with the user data `userData` containing the axis-aligned bounding box `aabb`, and adds the proxy into the collision space.
+func (self *BroadPhase) CreateProxy(userData any, aabb *Aabb) IProxy { // override
+	panic("abstract call")
 }
 
-func (bp *BroadPhase) CollectPairs() {}
+// Removes the proxy `proxy` from the collision space.
+func (self *BroadPhase) DestroyProxy(proxy IProxy) { // override
+	panic("abstract call")
+}
 
-func (bp *BroadPhase) GetProxyPairList() *ProxyPair {
+// Moves the proxy `proxy` to the axis-aligned bounding box `aabb`. `displacement` is the difference between current and previous center of the AABB. This is used for predicting movement of the proxy.
+func (bp *BroadPhase) MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3) { // override
+	panic("abstract call")
+}
+
+// Returns whether the pair of `proxy1` and `proxy2` is overlapping. As proxies can be larger than the containing AABBs, two proxies may overlap even though their inner AABBs are separate.
+func (bp *BroadPhase) IsOverlapping(proxy1, proxy2 IProxy) bool { // override
+	return MathUtil.Aabb_overlap(proxy1.GetAabbMin(), proxy1.GetAabbMax(), proxy2.GetAabbMin(), proxy2.GetAabbMax())
+}
+
+func (bp *BroadPhase) CollectPairs() { // override
+	panic("abstract call")
+}
+
+func (bp *BroadPhase) GetProxyPairList() *ProxyPair { // override
 	return bp.proxyPairList
 }
 
-func (self *BroadPhase) IsIncremental() bool {
+func (self *BroadPhase) IsIncremental() bool { // override
 	return self.incremental
 }
 
-func (self *BroadPhase) CreateProxy(userData any, aabb *Aabb) IProxy {
+// Returns the number of broad-phase AABB tests.
+func (self *BroadPhase) GetTestCount() int { // override
+	return self.testCount
+}
+
+func (self *BroadPhase) RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback) { // override
 	panic("abstract call")
 }
-func (self *BroadPhase) DestroyProxy(proxy IProxy) {
+
+func (self *BroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) { // override
 	panic("abstract call")
 }
-func (self *BroadPhase) RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback) {
-	panic("abstract call")
-}
-func (self *BroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
-	panic("abstract call")
-}
-func (self *BroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback) {
+
+func (self *BroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback) { // override
 	panic("abstract call")
 }
 
@@ -261,5 +292,3 @@ func (ag *AabbGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) {
 		out.z = ag.min.z
 	}
 }
-
-// TODO

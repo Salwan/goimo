@@ -204,8 +204,8 @@ func (self *BvhTree) _buildTopDownRecursive(leaves []*BvhNode, from int, until i
 	if num == 1 {
 		leaf := leaves[from]
 		proxy := leaf.proxy
-		leaf.aabbMin = proxy.GetAabbMin()
-		leaf.aabbMax = proxy.GetAabbMax()
+		leaf.aabbMin = *proxy.GetAabbMin()
+		leaf.aabbMax = *proxy.GetAabbMax()
 		return leaf
 	}
 

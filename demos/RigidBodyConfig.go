@@ -26,5 +26,6 @@ func NewRigidBodyConfig() *RigidBodyConfig {
 		SleepingAngularVelocityThreshold: Settings.SleepingAngularVelocityThreshold,
 		SleepingTimeThreshold:            Settings.SleepingTimeThreshold,
 	}
+	rbc.Rotation.Identity()
 	return rbc
 }

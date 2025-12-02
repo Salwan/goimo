@@ -79,6 +79,11 @@ func NewRigidBody(config *RigidBodyConfig) *RigidBody {
 		gravityScale:                     1.0,
 	}
 
+	rb.localInertia.Identity()
+	rb.invLocalInertia.Identity()
+	rb.invLocalInertiaWithoutRotFactor.Identity()
+	rb.invInertia.Identity()
+
 	rb.pTransform.position = config.Position
 	rb.pTransform.rotation = config.Rotation
 	rb.transform = rb.pTransform

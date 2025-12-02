@@ -29,11 +29,13 @@ type ShapeConfig struct {
 }
 
 func NewShapeConfig() *ShapeConfig {
-	return &ShapeConfig{
+	s := &ShapeConfig{
 		Friction:       Settings.DefaultFriction,
 		Restitution:    Settings.DefaultRestitution,
 		Density:        Settings.DefaultDensity,
 		CollisionGroup: Settings.DefaultCollisionGroup,
 		CollisionMask:  Settings.DefaultCollisionMask,
 	}
+	s.Rotation.Identity()
+	return s
 }

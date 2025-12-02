@@ -7,8 +7,8 @@ package demos
 type IProxy interface {
 	IDoubleLinkNode[IProxy]
 	GetID() int
-	GetAabbMin() Vec3
-	GetAabbMax() Vec3
+	GetAabbMin() *Vec3
+	GetAabbMax() *Vec3
 	GetUserData() any
 }
 
@@ -66,12 +66,12 @@ func (self *Proxy) GetID() int {
 	return self.id
 }
 
-func (self *Proxy) GetAabbMin() Vec3 {
-	return self.aabbMin
+func (self *Proxy) GetAabbMin() *Vec3 {
+	return &self.aabbMin
 }
 
-func (self *Proxy) GetAabbMax() Vec3 {
-	return self.aabbMax
+func (self *Proxy) GetAabbMax() *Vec3 {
+	return &self.aabbMax
 }
 
 func (self *Proxy) GetUserData() any {

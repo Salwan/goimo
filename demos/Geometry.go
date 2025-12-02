@@ -18,9 +18,11 @@ type Geometry struct {
 }
 
 func NewGeometry(_type_ GeometryType) *Geometry {
-	return &Geometry{
+	g := &Geometry{
 		_type: _type_,
 	}
+	g.inertiaCoeff.Identity()
+	return g
 }
 
 func (geo *Geometry) UpdateMass() {}

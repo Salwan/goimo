@@ -261,9 +261,11 @@ type ConvexCastWrapper struct { // implements IBroadPhaseProxyCallback
 }
 
 func NewConvexCastWrapper() *ConvexCastWrapper {
-	return &ConvexCastWrapper{
+	c := &ConvexCastWrapper{
 		rayCastHit: NewRayCastHit(),
 	}
+	c.begin.Identity()
+	return c
 }
 
 func (self *ConvexCastWrapper) Process(proxy IProxy) { // override

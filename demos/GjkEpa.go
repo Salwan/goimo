@@ -51,7 +51,7 @@ type GjkEpa struct {
 
 // Should not be called directly as GjkEpa is a singleton, access with: GjkEpaInstance
 func _newGjkEpa() *GjkEpa {
-	return &GjkEpa{
+	g := &GjkEpa{
 		s:  make([]Vec3, 4),
 		w1: make([]Vec3, 4),
 		w2: make([]Vec3, 4),
@@ -64,6 +64,8 @@ func _newGjkEpa() *GjkEpa {
 
 		polyhedron: NewEpaPolyhedron(),
 	}
+	g.tempTransform.Identity()
+	return g
 }
 
 // --- private ---
