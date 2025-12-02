@@ -6,10 +6,13 @@ Porting Notes
 * Use enum pattern for Haxe enumerations
 * Keep to name conventions but minor corrections are ok (Settings instead of Setting for example)
 * Every struct should be allocated/stored as a pointer to match Haxe by-refs behavior
-* There's no clear definition, but IVec3 appears to be a macro Vec3 implemented as flat float array rather than a struct with its own math library in `M.hx`.
+* There's no clear definition, but IVec3 is a flattened Vec3 array with its own math library in `M.hx`.
 * For Haxe `Any`, use Go's `any` (alias of: `interface{}`)
 * For initial consistency, reimplement all `M.*` math funcs in MathUtil. Can gradually switch to normal math funcs later when things are working.
 * According to LLM, any struct in Go up to 64 bytes can be kept in registers and copied quickly. Passing and using Vec3/Quat by pointer wastes CPU cycles due to additional indirection and hurts optimizer. Mat3 (72 bytes) non-performance critical code can be by-value, while performance sensitive can be py-pointer. Mat4/Transform definitely need to be by pointer as generated asm will memory copy those and thats a higher cost than pointer indirection.
+* Mark structs that are supposed to implement an interface (or 3) with a comment
+* Mark methods that are supposed to override embedding/interface with a comment
+* Enums should use const style TypeName_VALUENAME to match Haxe's namings
 
 ## Modifications
 

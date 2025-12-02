@@ -18,7 +18,7 @@ type BoxGeometry struct {
 // Creates a box collision geometry of half-extents
 func NewBoxGeometry(halfExtents Vec3) *BoxGeometry {
 	b := &BoxGeometry{
-		ConvexGeometry: NewConvexGeometry(_BOX),
+		ConvexGeometry: NewConvexGeometry(GeometryType_BOX),
 		halfExtents:    halfExtents,
 		halfAxisX:      Vec3{halfExtents.x, 0, 0},
 		halfAxisY:      Vec3{0, halfExtents.y, 0},
@@ -209,5 +209,5 @@ func (b *BoxGeometry) RayCastLocal(begin, end Vec3, hit *RayCastHit) bool {
 }
 
 func (b *BoxGeometry) GetType() GeometryType {
-	return _BOX
+	return GeometryType_BOX
 }

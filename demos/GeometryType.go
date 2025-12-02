@@ -7,13 +7,13 @@ package demos
 type GeometryType int
 
 const (
-	_SPHERE GeometryType = iota
-	_BOX
-	_CYLINDER
-	_CONE
-	_CAPSULE
-	_CONVEX_HULL
+	GeometryType_SPHERE GeometryType = iota
+	GeometryType_BOX
+	GeometryType_CYLINDER
+	GeometryType_CONE
+	GeometryType_CAPSULE
+	GeometryType_CONVEX_HULL
 )
 
-const _CONVEX_MIN = 0
-const _CONVEX_MAX = 5
+const GeometryType_CONVEX_MIN = 0
+const GeometryType_CONVEX_MAX = 5

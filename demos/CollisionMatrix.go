@@ -20,12 +20,12 @@ func NewCollisionMatrix() *CollisionMatrix {
 
 	gjkEpaDetector := NewGjkEpaDetector()
 
-	sp := _SPHERE
-	bo := _BOX
-	cy := _CYLINDER
-	co := _CONE
-	ca := _CAPSULE
-	ch := _CONVEX_HULL
+	sp := GeometryType_SPHERE
+	bo := GeometryType_BOX
+	cy := GeometryType_CYLINDER
+	co := GeometryType_CONE
+	ca := GeometryType_CAPSULE
+	ch := GeometryType_CONVEX_HULL
 
 	cm.detectors[sp][sp] = NewSphereSphereDetector()
 	cm.detectors[sp][bo] = NewSphereBoxDetector(false)

@@ -270,7 +270,7 @@ func (self *ConvexCastWrapper) Process(proxy IProxy) { // override
 	shape := proxy.(*Proxy).userData.(*Shape)
 	t := shape.geom.GetType()
 
-	if t < _CONVEX_MIN || t > _CONVEX_MAX {
+	if t < GeometryType_CONVEX_MIN || t > GeometryType_CONVEX_MAX {
 		return
 	}
 
