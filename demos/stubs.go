@@ -15,10 +15,3 @@ type ConvexCastWrapper struct{}
 func NewConvexCastWrapper() *ConvexCastWrapper {
 	return &ConvexCastWrapper{}
 }
-
-// ///////////////////////// AabbTestWrapper
-type AabbTestWrapper struct{}
-
-func NewAabbTestWrapper() *AabbTestWrapper {
-	return &AabbTestWrapper{}
-}

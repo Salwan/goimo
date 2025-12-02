@@ -223,3 +223,30 @@ func (w *World) buildIsland(base *RigidBody) {
 }
 
 func (w *World) AddRigidBody(rigidBody *RigidBody) {}
+
+// aabb test wrapper (broadphase -> world)
+type AabbTestWrapper struct {
+	*BroadPhaseProxyCallback
+
+	callback IAabbTestCallback
+	aabb     *Aabb
+}
+
+func NewAabbTestWrapper() *AabbTestWrapper {
+	return &AabbTestWrapper{
+		BroadPhaseProxyCallback: NewBroadPhaseProxyCallback(),
+		aabb:                    NewAabb(),
+	}
+}
+
+func (self *AabbTestWrapper) Process(proxy IProxy) {
+	shape := proxy.(*Proxy).userData.(*Shape)
+	shapeAabb := shape.aabb
+
+	// check if aabbs overlap again as proxies can be fattened by broadphase
+	if MathUtil.Aabb_overlap(&shapeAabb.Min, &shapeAabb.Max, &self.aabb.Min, &self.aabb.Max) {
+		self.callback.Process(shape)
+	}
+}
+
+// TODO
