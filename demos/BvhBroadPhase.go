@@ -72,7 +72,7 @@ func (self *BvhBroadPhase) _collide(n1, n2 *BvhNode) {
 			return
 		}
 		self._collide(n1.children[0], n2)
-		self._collide(n2.children[1], n2)
+		self._collide(n1.children[1], n2)
 		return
 	}
 
