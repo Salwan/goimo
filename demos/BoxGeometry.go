@@ -207,3 +207,7 @@ func (b *BoxGeometry) RayCastLocal(begin, end Vec3, hit *RayCastHit) bool {
 
 	return true
 }
+
+func (b *BoxGeometry) GetType() GeometryType {
+	return _BOX
+}

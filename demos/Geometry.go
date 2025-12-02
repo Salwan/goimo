@@ -8,6 +8,7 @@ type IGeometry interface {
 	ComputeAabb(aabb *Aabb, tf *Transform)
 	RayCastLocal(begin, end Vec3, hit *RayCastHit) bool
 	RayCast(begin, end Vec3, transform *Transform, hit *RayCastHit) bool
+	GetType() GeometryType
 }
 
 type Geometry struct {

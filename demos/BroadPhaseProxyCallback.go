@@ -4,11 +4,7 @@ package demos
 // (oimo/collision/broadphase/BroadPhaseProxyCallback.go)
 // A callback class for queries in a broad phase.
 
-type BroadPhaseProxyCallback struct{}
-
-func NewBroadPhaseProxyCallback() *BroadPhaseProxyCallback {
-	return &BroadPhaseProxyCallback{}
+type IBroadPhaseProxyCallback interface {
+	// This is called every time a broad phase algorithm reports a proxy `proxy`.
+	Process(proxy IProxy)
 }
-
-// This is called every time a broad phase algorithm reports a proxy `proxy`.
-func (self *BroadPhaseProxyCallback) process(proxy *Proxy) {}

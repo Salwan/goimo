@@ -224,22 +224,53 @@ func (w *World) buildIsland(base *RigidBody) {
 
 func (w *World) AddRigidBody(rigidBody *RigidBody) {}
 
-// aabb test wrapper (broadphase -> world)
-type AabbTestWrapper struct {
-	*BroadPhaseProxyCallback
+// TODO
 
+// convex cast wrapper (broadphase -> world)
+type ConvexCastWrapper struct { // implements IBroadPhaseProxyCallback
+	callback    IRayCastCallback
+	begin       *Transform
+	translation Vec3
+	convex      IConvexGeometry
+
+	rayCastHit *RayCastHit
+	zero       Vec3
+}
+
+func NewConvexCastWrapper() *ConvexCastWrapper {
+	return &ConvexCastWrapper{
+		rayCastHit: NewRayCastHit(),
+		begin:      NewTransform(),
+	}
+}
+
+func (self *ConvexCastWrapper) Process(proxy IProxy) { // override
+	shape := proxy.(*Proxy).userData.(*Shape)
+	t := shape.geom.GetType()
+
+	if t < _CONVEX_MIN || t > _CONVEX_MAX {
+		return
+	}
+
+	geom := shape.geom
+	if GjkEpaInstance.ConvexCast(self.convex, geom.(IConvexGeometry), self.begin, &shape.transform, self.translation, self.zero, self.rayCastHit) {
+		self.callback.Process(shape, self.rayCastHit)
+	}
+}
+
+// aabb test wrapper (broadphase -> world)
+type AabbTestWrapper struct { // implements IBroadPhaseProxyCallback
 	callback IAabbTestCallback
 	aabb     *Aabb
 }
 
 func NewAabbTestWrapper() *AabbTestWrapper {
 	return &AabbTestWrapper{
-		BroadPhaseProxyCallback: NewBroadPhaseProxyCallback(),
-		aabb:                    NewAabb(),
+		aabb: NewAabb(),
 	}
 }
 
-func (self *AabbTestWrapper) Process(proxy IProxy) {
+func (self *AabbTestWrapper) Process(proxy IProxy) { // override
 	shape := proxy.(*Proxy).userData.(*Shape)
 	shapeAabb := shape.aabb
 
