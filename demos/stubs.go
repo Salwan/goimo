@@ -22,10 +22,3 @@ type AabbTestWrapper struct{}
 func NewAabbTestWrapper() *AabbTestWrapper {
 	return &AabbTestWrapper{}
 }
-
-// ///////////////////////// Pool
-type Pool struct{}
-
-func NewPool() *Pool {
-	return &Pool{}
-}
