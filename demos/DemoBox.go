@@ -55,7 +55,7 @@ type DemoBox struct {
 func NewDemoBox(rb *RigidBody, pos, hsize math32.Vector3) *DemoBox {
 	var color *math32.Color
 	switch rb._type {
-	case _DYNAMIC:
+	case RigidBodyType_DYNAMIC:
 		// OimoPhysics uses shape id number to alternate colors
 		nextDynamicColor++
 		if nextDynamicColor%2 == 0 {
@@ -63,9 +63,9 @@ func NewDemoBox(rb *RigidBody, pos, hsize math32.Vector3) *DemoBox {
 		} else {
 			color = shapeColor2
 		}
-	case _KINEMATIC:
+	case RigidBodyType_KINEMATIC:
 		color = kinematicShapeColor
-	case _STATIC:
+	case RigidBodyType_STATIC:
 		color = staticShapeColor
 	}
 

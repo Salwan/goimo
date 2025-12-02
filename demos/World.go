@@ -37,13 +37,13 @@ type World struct {
 }
 
 // Creates a new physics world, with broad-phase collision detection algorithm `broadPhaseType` and gravitational acceleration `gravity`.
-// Defaults: _BVH, nil
+// Defaults: BroadPhaseType_BVH, nil
 func NewWorld(broadPhaseType BroadPhaseType, gravity *Vec3) *World {
 	w := World{}
 	switch broadPhaseType {
-	case _BRUTE_FORCE:
+	case BroadPhaseType_BRUTE_FORCE:
 		w.broadPhase = NewBruteForceBroadPhase()
-	case _BVH:
+	case BroadPhaseType_BVH:
 		w.broadPhase = NewBvhBroadPhase()
 	}
 
@@ -70,18 +70,6 @@ func NewWorld(broadPhaseType BroadPhaseType, gravity *Vec3) *World {
 	w.pool = NewPool()
 
 	return &w
-}
-
-func (w *World) step(timeStep float64) {
-	if w.timeStep.Dt > 0 {
-		w.timeStep.DtRatio = timeStep / w.timeStep.Dt
-	}
-	w.timeStep.Dt = timeStep
-	w.timeStep.InvDt = 1.0 / timeStep
-
-	// Profile hook: totalTime
-	w.updateContacts()
-	w.solveIslands()
 }
 
 func (w *World) updateContacts() {
@@ -115,11 +103,11 @@ func (w *World) solveIslands() {
 	w.island.SetGravity(&w.gravity)
 	w.numSolversInIslands = 0
 	for b := w.rigidBodyList; b != nil; b = b.next {
-		if b.addedToIsland || b.sleeping || b._type == _STATIC {
+		if b.addedToIsland || b.sleeping || b._type == RigidBodyType_STATIC {
 			// never be the base of an island
 			continue
 		}
-		if b.IsAlone() {
+		if b.isAlone() {
 			w.island.StepSingleRigidBody(*w.timeStep, b)
 			w.numIslands++
 			continue
@@ -163,7 +151,7 @@ func (w *World) buildIsland(base *RigidBody) {
 		w.rigidBodyStack[stackCount] = nil
 
 		// stop searching deeper
-		if rb._type == _STATIC {
+		if rb._type == RigidBodyType_STATIC {
 			continue
 		}
 
@@ -222,7 +210,46 @@ func (w *World) buildIsland(base *RigidBody) {
 	}
 }
 
+func (self *World) addShape(shape *Shape) {
+	shape.proxy = self.broadPhase.CreateProxy(shape, &shape.aabb)
+	shape.id = self.shapeIdCount
+	self.shapeIdCount++
+
+	self.numShapes++
+}
+
+func (self *World) _removeShape(shape *Shape) {
+	self.broadPhase.DestroyProxy(shape.proxy)
+	shape.proxy = nil
+	shape.id = -1
+
+	// destroy linked contacts
+	for cl := shape.rigidBody.contactLinkList; cl != nil; cl = cl.next {
+		c := cl.contact
+		if c.s1 == shape || c.s2 == shape {
+			cl.other.WakeUp()
+			self.contactManager.destroyContact(c)
+		}
+	}
+
+	self.numShapes--
+}
+
 func (w *World) AddRigidBody(rigidBody *RigidBody) {}
+
+// --- public ---
+
+func (w *World) step(timeStep float64) {
+	if w.timeStep.Dt > 0 {
+		w.timeStep.DtRatio = timeStep / w.timeStep.Dt
+	}
+	w.timeStep.Dt = timeStep
+	w.timeStep.InvDt = 1.0 / timeStep
+
+	// Profile hook: totalTime
+	w.updateContacts()
+	w.solveIslands()
+}
 
 // TODO
 

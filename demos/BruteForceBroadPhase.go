@@ -12,7 +12,7 @@ type BruteForceBroadPhase struct {
 
 func NewBruteForceBroadPhase() *BruteForceBroadPhase {
 	return &BruteForceBroadPhase{
-		BroadPhase: NewBroadPhase(_BRUTE_FORCE),
+		BroadPhase: NewBroadPhase(BroadPhaseType_BRUTE_FORCE),
 	}
 }
 

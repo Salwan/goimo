@@ -20,7 +20,7 @@ type RigidBodyConfig struct {
 
 func NewRigidBodyConfig() *RigidBodyConfig {
 	rbc := &RigidBodyConfig{
-		Type:                             _DYNAMIC,
+		Type:                             RigidBodyType_DYNAMIC,
 		AutoSleep:                        true,
 		SleepingVelocityThreshold:        Settings.SleepingVelocityThreshold,
 		SleepingAngularVelocityThreshold: Settings.SleepingAngularVelocityThreshold,

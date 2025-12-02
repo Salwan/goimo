@@ -7,7 +7,7 @@ package demos
 type RigidBodyType int
 
 const (
-	_DYNAMIC RigidBodyType = iota
-	_STATIC
-	_KINEMATIC
+	RigidBodyType_DYNAMIC RigidBodyType = iota
+	RigidBodyType_STATIC
+	RigidBodyType_KINEMATIC
 )

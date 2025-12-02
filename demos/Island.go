@@ -60,7 +60,7 @@ func (island *Island) StepSingleRigidBody(timeStep TimeStep, rb *RigidBody) {
 	rb.angularContactImpulse.Zero()
 
 	// update sleep time
-	if rb.IsSleepy() {
+	if rb.isSleepy() {
 		rb.sleepTime += dt
 		if rb.sleepTime >= rb.sleepingTimeThreshold {
 			rb.Sleep()
@@ -71,7 +71,7 @@ func (island *Island) StepSingleRigidBody(timeStep TimeStep, rb *RigidBody) {
 
 	if !rb.sleeping {
 		// the rigid body is awake
-		if rb._type == _DYNAMIC {
+		if rb._type == RigidBodyType_DYNAMIC {
 			// damping
 			linScale := fastInvExp(dt * rb.linearDamping)
 			angScale := fastInvExp(dt * rb.angularDamping)
@@ -89,8 +89,8 @@ func (island *Island) StepSingleRigidBody(timeStep TimeStep, rb *RigidBody) {
 			MathUtil.Vec3_addRhsScaled(&rb.angVel, &rb.angVel, &angAcc, dt)
 			MathUtil.Vec3_scale(&rb.angVel, &rb.angVel, angScale)
 		}
-		rb.Integrate(dt)
-		rb.SyncShapes()
+		rb.integrate(dt)
+		rb.syncShapes()
 	}
 }
 
@@ -156,7 +156,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 		rb.sleeping = false
 
 		// update sleep time
-		if rb.IsSleepy() {
+		if rb.isSleepy() {
 			rb.sleepTime += dt
 		} else {
 			rb.sleepTime = 0
@@ -169,7 +169,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 		}
 
 		// apply forces
-		if rb._type == _DYNAMIC {
+		if rb._type == RigidBodyType_DYNAMIC {
 			// damping
 			linScale := fastInvExp(dt * rb.linearDamping)
 			angScale := fastInvExp(dt * rb.angularDamping)
@@ -219,7 +219,7 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 
 	// integrate
 	for i := range island.numRigidBodies {
-		island.rigidBodies[i].Integrate(dt)
+		island.rigidBodies[i].integrate(dt)
 	}
 
 	// solve split impulse
@@ -254,6 +254,6 @@ func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPosi
 
 	// synchronize shapes
 	for i := range island.numRigidBodies {
-		island.rigidBodies[i].SyncShapes()
+		island.rigidBodies[i].syncShapes()
 	}
 }

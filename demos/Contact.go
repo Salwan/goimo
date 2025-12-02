@@ -251,7 +251,7 @@ func (self *Contact) GetShape2() *Shape {
 }
 
 // Returns whether the shapes are touching.
-func (self *Contact) isTouching() bool {
+func (self *Contact) IsTouching() bool {
 	return self.touching
 }
 

@@ -172,7 +172,7 @@ func (self *BroadPhase) _aabbSegmentTest(aabbMin, aabbMax, begin, end Vec3) bool
 	return true
 }
 
-func (self *BroadPhase) aabbConvexSweepTest(aabbMin, aabbMax Vec3, convex IConvexGeometry, begin *Transform, translation Vec3) bool {
+func (self *BroadPhase) _aabbConvexSweepTest(aabbMin, aabbMax Vec3, convex IConvexGeometry, begin *Transform, translation Vec3) bool {
 	self.aabb.min = aabbMin
 	self.aabb.max = aabbMax
 	self.convexSweep.Set(convex, begin, translation)

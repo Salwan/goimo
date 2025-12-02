@@ -41,6 +41,15 @@ func (m *Mat3) Identity() *Mat3 {
 	)
 }
 
+// Sets this matrix to zero matrix and return this
+func (m *Mat3) Zero() *Mat3 {
+	return m.Set(
+		0, 0, 0,
+		0, 0, 0,
+		0, 0, 0,
+	)
+}
+
 // Extract a column from Mat3, returns Vec3
 func (m *Mat3) GetCol(index int) Vec3 {
 	var dst Vec3
@@ -91,6 +100,24 @@ func (m *Mat3) MulRhsTransposed(a, b *Mat3) Mat3 {
 	result.e21 = a.e20*b.e10 + a.e21*b.e11 + a.e22*b.e12
 	result.e22 = a.e20*b.e20 + a.e21*b.e21 + a.e22*b.e22
 	return result
+}
+
+// Returns matrix scaled by s
+func (m *Mat3) Scale(s float64) Mat3 {
+	return Mat3{
+		m.e00 * s, m.e01 * s, m.e02 * s,
+		m.e10 * s, m.e11 * s, m.e12 * s,
+		m.e20 * s, m.e21 * s, m.e22 * s,
+	}
+}
+
+// Scales matrix by s, returns this
+func (m *Mat3) ScaleEq(s float64) *Mat3 {
+	return m.Set(
+		m.e00*s, m.e01*s, m.e02*s,
+		m.e10*s, m.e11*s, m.e12*s,
+		m.e20*s, m.e21*s, m.e22*s,
+	)
 }
 
 // TODO

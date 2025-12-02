@@ -109,8 +109,8 @@ func (self *ContactManager) _destroyOutdatedContacts() {
 		r1 := s1.rigidBody
 		r2 := s2.rigidBody
 
-		active1 := !r1.sleeping && r1._type != _STATIC
-		active2 := !r2.sleeping && r2._type != _STATIC
+		active1 := !r1.sleeping && r1._type != RigidBodyType_STATIC
+		active2 := !r2.sleeping && r2._type != RigidBodyType_STATIC
 		if !active1 && !active2 {
 			// skip the pair if both rigid bodies are inactive
 			c.shouldBeSkipped = true
@@ -141,7 +141,7 @@ func (cm *ContactManager) _shouldCollide(s1, s2 *Shape) bool {
 		return false
 	}
 
-	if r1._type != _DYNAMIC && r2._type != _DYNAMIC {
+	if r1._type != RigidBodyType_DYNAMIC && r2._type != RigidBodyType_DYNAMIC {
 		// neither is dynamic
 		return false
 	}

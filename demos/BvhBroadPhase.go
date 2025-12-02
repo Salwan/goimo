@@ -15,7 +15,7 @@ type BvhBroadPhase struct {
 
 func NewBvhBroadPhase() *BvhBroadPhase {
 	b := &BvhBroadPhase{
-		BroadPhase:   NewBroadPhase(_BVH),
+		BroadPhase:   NewBroadPhase(BroadPhaseType_BVH),
 		Tree:         NewBvhTree(),
 		movedProxies: make([]*BvhProxy, 1024),
 	}
@@ -42,9 +42,9 @@ func (self *BvhBroadPhase) _addToMovedProxy(bvhProxy *BvhProxy) {
 }
 
 // displacement can be nil
-func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb Aabb, displacement *Vec3) {
+func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb *Aabb, displacement *Vec3) {
 	// set tight AABB
-	p.setAabb(aabb)
+	p.setAabb(*aabb)
 
 	// fatten the AABB
 	padding := Settings.BvhProxyPadding
@@ -58,8 +58,8 @@ func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb Aabb, displacement *Ve
 		var addToMin, addToMax Vec3
 		MathUtil.Vec3_min(&addToMin, &zero, displacement)
 		MathUtil.Vec3_max(&addToMax, &zero, displacement)
-		p.aabbMin.Add(addToMin)
-		p.aabbMax.Add(addToMax)
+		p.aabbMin.AddEq(addToMin)
+		p.aabbMax.AddEq(addToMax)
 	}
 }
 
@@ -80,42 +80,99 @@ func (self *BvhBroadPhase) _collide(n1, n2 *BvhNode) {
 		return
 	}
 	if l1 && l2 {
-		// HERE: switch BroadPhase *Proxy to use IProxy for this to work
 		self._pickAndPushProxyPair(n1.proxy, n2.proxy)
 		return
+	}
+	if l2 || n1.height > n2.height {
+		// descend node 1
+		self._collide(n1.children[0], n2)
+		self._collide(n1.children[1], n2)
+	} else {
+		// descend node 2
+		self._collide(n2.children[0], n1)
+		self._collide(n2.children[1], n1)
 	}
 }
 
 func (self *BvhBroadPhase) _rayCastRecursive(node *BvhNode, _p1, _p2 Vec3, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if !self._aabbSegmentTest(node.aabbMin, node.aabbMax, _p1, _p2) {
+		return
+	}
+
+	if node.height == 0 { // leaf
+		callback.Process(node.proxy)
+		return
+	}
+
+	self._rayCastRecursive(node.children[0], _p1, _p2, callback)
+	self._rayCastRecursive(node.children[1], _p1, _p2, callback)
 }
 
 func (self *BvhBroadPhase) _convexCastRecursive(node *BvhNode, convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if !self._aabbConvexSweepTest(node.aabbMin, node.aabbMax, convex, begin, translation) {
+		return
+	}
+
+	if node.height == 0 { // leaf
+		callback.Process(node.proxy)
+		return
+	}
+
+	self._convexCastRecursive(node.children[0], convex, begin, translation, callback)
+	self._convexCastRecursive(node.children[1], convex, begin, translation, callback)
 }
 
 func (self *BvhBroadPhase) _aabbTestRecursive(node *BvhNode, aabb Aabb, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if !MathUtil.Aabb_overlap(&node.aabbMin, &node.aabbMax, &aabb.Min, &aabb.Max) {
+		return
+	}
+
+	if node.height == 0 { // leaf
+		callback.Process(node.proxy)
+		return
+	}
+
+	self._aabbTestRecursive(node.children[0], aabb, callback)
+	self._aabbTestRecursive(node.children[1], aabb, callback)
 }
 
 // --- public ---
 
 func (self *BvhBroadPhase) CreateProxy(userData any, aabb *Aabb) IProxy {
-	// TODO
-	panic("not impl")
+	p := NewBvhProxy(userData, self.idCount)
+	self.idCount++
+	self._addProxy(p)
+
+	self._updateProxy(p, aabb, nil)
+	self.Tree.insertProxy(p)
+	self._addToMovedProxy(p)
+
+	return p
 }
 
 func (self *BvhBroadPhase) DestroyProxy(proxy IProxy) {
-	// TODO
-	panic("not impl")
+	self._removeProxy(proxy)
+
+	bvhProxy := proxy.(*BvhProxy)
+	self.Tree.deleteProxy(bvhProxy)
+	bvhProxy.userData = nil
+	bvhProxy.next = nil
+	bvhProxy.prev = nil
+
+	if bvhProxy.Moved {
+		bvhProxy.Moved = false
+	}
 }
 
 func (self *BvhBroadPhase) MoveProxy(proxy IProxy, aabb *Aabb, displacement Vec3) {
-	// TODO
-	panic("not impl")
+	p := proxy.(*BvhProxy)
+	if MathUtil.Aabb_contains(&p.aabbMin, &p.aabbMax, &aabb.Min, &aabb.Max) {
+		// need not move proxy
+		return
+	}
+
+	self._updateProxy(p, aabb, &displacement)
+	self._addToMovedProxy(p)
 }
 
 func (self *BvhBroadPhase) CollectPairs() {
@@ -161,24 +218,29 @@ func (self *BvhBroadPhase) CollectPairs() {
 }
 
 func (self *BvhBroadPhase) RayCast(begin Vec3, end Vec3, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if self.Tree.root == nil {
+		return // no AABBs in the broadphase
+	}
+
+	self._rayCastRecursive(self.Tree.root, begin, end, callback)
 }
 
 func (self *BvhBroadPhase) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if self.Tree.root == nil {
+		return // no AABBs in the broadphase
+	}
+
+	self._convexCastRecursive(self.Tree.root, convex, begin, translation, callback)
 }
 
 func (self *BvhBroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallback) {
-	// TODO
-	panic("not impl")
+	if self.Tree.root == nil {
+		return // no AABBs in the broadphase
+	}
+	self._aabbTestRecursive(self.Tree.root, *aabb, callback)
 }
 
 // Returns the balance of the bounding volume tree.
 func (self *BvhBroadPhase) getTreeBalance() int {
-	// TODO
-	panic("not impl")
+	return self.Tree.getBalance()
 }
-
-// TODO

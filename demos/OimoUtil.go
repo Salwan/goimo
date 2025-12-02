@@ -26,9 +26,9 @@ func (OimoUtilNamespace) AddRigidBody(w *World, center *Vec3, geom IGeometry, wa
 	shapec.Geometry = geom
 	bodyc := NewRigidBodyConfig()
 	if wall {
-		bodyc.Type = _STATIC
+		bodyc.Type = RigidBodyType_STATIC
 	} else {
-		bodyc.Type = _DYNAMIC
+		bodyc.Type = RigidBodyType_DYNAMIC
 	}
 	bodyc.Position = *center
 	body := NewRigidBody(bodyc)

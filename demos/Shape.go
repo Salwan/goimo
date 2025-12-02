@@ -50,6 +50,24 @@ func NewShape(config *ShapeConfig) *Shape {
 	return s
 }
 
+// --- double linked list interface ---
+
+func (c *Shape) GetNext() *Shape {
+	return c.next
+}
+
+func (c *Shape) SetNext(x *Shape) {
+	c.next = x
+}
+
+func (c *Shape) GetPrev() *Shape {
+	return c.prev
+}
+
+func (c *Shape) SetPrev(x *Shape) {
+	c.prev = x
+}
+
 func (sh *Shape) sync(tf1 *Transform, tf2 *Transform) {
 	MathUtil.Transform_mul(&sh.pTransform, &sh.localTransform, tf1)
 	MathUtil.Transform_mul(&sh.transform, &sh.localTransform, tf2)

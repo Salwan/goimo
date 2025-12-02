@@ -3,8 +3,6 @@ package demos
 import (
 	"math"
 	"math/rand"
-
-	"github.com/g3n/engine/math32"
 )
 
 // Provides mathematical operations for internal purposes.
@@ -29,16 +27,16 @@ var MathUtil = MathUtilNamespace{
 	TO_DEGREES:        180.0 / math.Pi,
 }
 
-func (MathUtilNamespace) Rand() float32 {
-	return rand.Float32()
+func (MathUtilNamespace) Rand() float64 {
+	return rand.Float64()
 }
 
 // Returns a random `Vec3` from `(min, min, min)` inclusive to `(max, max, max)` exclusive.
-func (MathUtilNamespace) RandVec3In(min, max float32) math32.Vector3 {
-	return math32.Vector3{
-		X: min + MathUtil.Rand()*(max-min),
-		Y: min + MathUtil.Rand()*(max-min),
-		Z: min + MathUtil.Rand()*(max-min)}
+func (MathUtilNamespace) RandVec3In(min, max float64) Vec3 {
+	return Vec3{
+		x: min + MathUtil.Rand()*(max-min),
+		y: min + MathUtil.Rand()*(max-min),
+		z: min + MathUtil.Rand()*(max-min)}
 }
 
 func (MathUtilNamespace) Sin(x float64) float64 {
@@ -283,6 +281,95 @@ func (MathUtilNamespace) Mat3_fromQuat(dst *Mat3, src *Quat) {
 	)
 }
 
+func (MathUtilNamespace) Mat3_fromEulerXyz(dst *Mat3, src *Vec3) {
+	sx := MathUtil.Sin(src.x)
+	sy := MathUtil.Sin(src.y)
+	sz := MathUtil.Sin(src.z)
+	cx := MathUtil.Cos(src.x)
+	cy := MathUtil.Cos(src.y)
+	cz := MathUtil.Cos(src.z)
+
+	dst.e00, dst.e01, dst.e02 = cy*cz, -cy*sz, sy
+	dst.e10, dst.e11, dst.e12 = cx*sz+cz*sx*sy, cx*cz-sx*sy*sz, -cy*sx
+	dst.e20, dst.e21, dst.e22 = sx*sz-cx*cz*sy, cz*sx+cx*sy*sz, cx*cy
+}
+
+// Sets diagonal values and zero the rest
+func (MathUtilNamespace) Mat3_diagonal(dst *Mat3, x, y, z float64) {
+	dst.e00, dst.e01, dst.e02 = x, 0, 0
+	dst.e10, dst.e11, dst.e12 = 0, y, 0
+	dst.e20, dst.e21, dst.e22 = 0, 0, z
+}
+
+func (MathUtilNamespace) Mat3_inv(dst *Mat3, src *Mat3) {
+	m00, m01, m02 := src.e00, src.e01, src.e02
+	m10, m11, m12 := src.e10, src.e11, src.e12
+	m20, m21, m22 := src.e20, src.e21, src.e22
+
+	// Cofactors
+	d00 := m11*m22 - m12*m21
+	d01 := m10*m22 - m12*m20
+	d02 := m10*m21 - m11*m20
+
+	d10 := m01*m22 - m02*m21
+	d11 := m00*m22 - m02*m20
+	d12 := m00*m21 - m01*m20
+
+	d20 := m01*m12 - m02*m11
+	d21 := m00*m12 - m02*m10
+	d22 := m00*m11 - m01*m10
+
+	// Determinant
+	det := m00*d00 - m01*d01 + m02*d02
+
+	if det < -1e-32 || det > 1e-32 {
+		det = 1.0 / det
+	}
+
+	dst.e00 = d00 * det
+	dst.e01 = -d10 * det
+	dst.e02 = d20 * det
+
+	dst.e10 = -d01 * det
+	dst.e11 = d11 * det
+	dst.e12 = -d21 * det
+
+	dst.e20 = d02 * det
+	dst.e21 = -d12 * det
+	dst.e22 = d22 * det
+}
+
+func (MathUtilNamespace) Mat3_det(src *Mat3) float64 {
+	d0 := src.e11*src.e22 - src.e12*src.e21
+	d1 := src.e10*src.e22 - src.e12*src.e20
+	d2 := src.e10*src.e21 - src.e11*src.e20
+	return src.e00*d0 - src.e01*d1 + src.e02*d2
+}
+
+func (MathUtilNamespace) Mat3_add(dst *Mat3, src1 *Mat3, src2 *Mat3) {
+	dst.e00 = src1.e00 + src2.e00
+	dst.e01 = src1.e01 + src2.e01
+	dst.e02 = src1.e02 + src2.e02
+	dst.e10 = src1.e10 + src2.e10
+	dst.e11 = src1.e11 + src2.e11
+	dst.e12 = src1.e12 + src2.e12
+	dst.e20 = src1.e20 + src2.e20
+	dst.e21 = src1.e21 + src2.e21
+	dst.e22 = src1.e22 + src2.e22
+}
+
+func (MathUtilNamespace) Mat3_addRhsScaled(dst *Mat3, src1 *Mat3, src2 *Mat3, src3 float64) {
+	dst.e00 = src1.e00 + src2.e00*src3
+	dst.e01 = src1.e01 + src2.e01*src3
+	dst.e02 = src1.e02 + src2.e02*src3
+	dst.e10 = src1.e10 + src2.e10*src3
+	dst.e11 = src1.e11 + src2.e11*src3
+	dst.e12 = src1.e12 + src2.e12*src3
+	dst.e20 = src1.e20 + src2.e20*src3
+	dst.e21 = src1.e21 + src2.e21*src3
+	dst.e22 = src1.e22 + src2.e22*src3
+}
+
 func (MathUtilNamespace) Mat3_transformInertia(dst *Mat3, inertia *Mat3, rotation *Mat3) {
 	MathUtil.Mat3_mul(dst, rotation, inertia)
 	MathUtil.Mat3_mulRhsTransposed(dst, dst, rotation)
@@ -317,6 +404,18 @@ func (MathUtilNamespace) Mat3_mulRhsTransposed(dst *Mat3, src1 *Mat3, src2 *Mat3
 	dst.Set(t00, t01, t02, t10, t11, t12, t20, t21, t22)
 }
 
+func (MathUtilNamespace) Mat3_scale(dst *Mat3, src1 *Mat3, src2 float64) {
+	dst.e00 = src1.e00 * src2
+	dst.e01 = src1.e01 * src2
+	dst.e02 = src1.e02 * src2
+	dst.e10 = src1.e10 * src2
+	dst.e11 = src1.e11 * src2
+	dst.e12 = src1.e12 * src2
+	dst.e20 = src1.e20 * src2
+	dst.e21 = src1.e21 * src2
+	dst.e22 = src1.e22 * src2
+}
+
 func (MathUtilNamespace) Mat3_scaleRows(dst *Mat3, src *Mat3, sx, sy, sz float64) {
 	dst.e00 = src.e00 * sx
 	dst.e01 = src.e01 * sx
@@ -345,12 +444,21 @@ func (MathUtilNamespace) Mat3_scaleCols(dst *Mat3, src *Mat3, sx, sy, sz float64
 	dst.e22 = src.e22 * sz
 }
 
-// Sets given Mat3 to zeroes and diagonal x y z
-func (MathUtilNamespace) Mat3_diagonal(dst *Mat3, x, y, z float64) {
+// Computes a 3x3 inertia tensor from a center-of-gravity offset vector, using the standard parallel axis contributions:
+// [  y^2+z^2   -xy     -zx ]
+// [   -xy    x^2+z^2   -yz ]
+// [   -zx     -yz    x^2+y^2 ]
+func (MathUtilNamespace) Mat3_inertiaFromCOG(dst *Mat3, src *Vec3) {
+	xx := src.x * src.x
+	yy := src.y * src.y
+	zz := src.z * src.z
+	xy := -src.x * src.y
+	yz := -src.y * src.z
+	zx := -src.x * src.z
 	dst.Set(
-		x, 0, 0,
-		0, y, 0,
-		0, 0, z,
+		yy+zz, xy, zx,
+		xy, xx+zz, yz,
+		zx, yz, xx+yy,
 	)
 }
 
@@ -364,6 +472,12 @@ func (MathUtilNamespace) Transform_mul(dst *Transform, src1 *Transform, src2 *Tr
 }
 
 ////////////////////////////////////////////////// AABB
+
+func (MathUtilNamespace) Aabb_contains(min1, max1, min2, max2 *Vec3) bool {
+	return min1.x <= min2.x && max1.x >= max2.x &&
+		min1.y <= min2.y && max1.y >= max2.y &&
+		min1.z <= min2.z && max1.z >= max2.z
+}
 
 func (MathUtilNamespace) Aabb_overlap(min1, max1, min2, max2 *Vec3) bool {
 	return min1.x < max2.x && max1.x > min2.x &&

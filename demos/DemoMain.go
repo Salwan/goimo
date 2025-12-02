@@ -72,7 +72,7 @@ func NewDemoMain() *DemoMain {
 	dm.application.Subscribe(window.OnWindowSize, onResize)
 	onResize("", nil)
 
-	dm.world = NewWorld(_BVH, nil)
+	dm.world = NewWorld(BroadPhaseType_BVH, nil)
 
 	// Init demos
 	dm.initBaseDemo()
