@@ -145,13 +145,13 @@ func (self *EpaPolyhedron) _addTriangle(t *EpaTriangle) {
 		debug.GjkLog("triangle added %d %d", self.numTriangles, t.id)
 		t.dump()
 	}
-	DoubleList_push(&self.triangleList, &self.triangleListLast, t)
+	self.triangleList, self.triangleListLast = DoubleList_push(self.triangleList, self.triangleListLast, t)
 }
 
 func (self *EpaPolyhedron) _removeTriangle(t *EpaTriangle) {
 	self.numTriangles--
 	debug.GjkLog("triangle removed %d, id: %d", self.numTriangles, t.id)
-	DoubleList_remove(&self.triangleList, &self.triangleListLast, t)
+	self.triangleList, self.triangleListLast = DoubleList_remove(self.triangleList, self.triangleListLast, t)
 	self._poolTriangle(t)
 }
 

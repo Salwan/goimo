@@ -70,8 +70,9 @@ func (c *Contact) SetPrev(x *Contact) {
 // --- private ---
 
 func (c *Contact) _attachLinks() {
-	DoubleList_push(&c.b1.contactLinkList, &c.b1.contactLinkListLast, c.link1)
-	DoubleList_push(&c.b2.contactLinkList, &c.b2.contactLinkListLast, c.link2)
+	c.b1.contactLinkList, c.b1.contactLinkListLast = DoubleList_push(c.b1.contactLinkList, c.b1.contactLinkListLast, c.link1)
+	c.b2.contactLinkList, c.b2.contactLinkListLast = DoubleList_push(c.b2.contactLinkList, c.b2.contactLinkListLast, c.link2)
+
 	c.b1.numContactLinks++
 	c.b2.numContactLinks++
 	c.link1.other = c.b2
@@ -81,8 +82,8 @@ func (c *Contact) _attachLinks() {
 }
 
 func (c *Contact) _detachLinks() {
-	DoubleList_remove(&c.b1.contactLinkList, &c.b1.contactLinkListLast, c.link1)
-	DoubleList_remove(&c.b2.contactLinkList, &c.b2.contactLinkListLast, c.link2)
+	c.b1.contactLinkList, c.b1.contactLinkListLast = DoubleList_remove(c.b1.contactLinkList, c.b1.contactLinkListLast, c.link1)
+	c.b2.contactLinkList, c.b2.contactLinkListLast = DoubleList_remove(c.b2.contactLinkList, c.b2.contactLinkListLast, c.link2)
 
 	c.b1.numContactLinks--
 	c.b2.numContactLinks--

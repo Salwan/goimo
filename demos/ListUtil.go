@@ -124,56 +124,64 @@ type IDoubleLinkNode[N any] interface {
 	SetPrev(N)
 }
 
-// Visit all nodes in the list calling callback(n) on each
+// Visit all nodes in the list calling callback(n) on each. (unused)
 func DoubleList_foreach[N interface {
 	IDoubleLinkNode[N]
 	comparable
-}](head *N, callback func(n N)) {
-	list := *head
+}](head N, callback func(n N)) {
+	list := head
 	var zero N
 	for n := list; n != zero; n = n.GetNext() {
 		callback(n)
 	}
 }
 
-// Push node to end of list
+// Push node to end of list. Returns new (head, tail) that must be set
 func DoubleList_push[N interface {
 	IDoubleLinkNode[N]
 	comparable
-}](head *N, tail *N, n N) {
+}](head N, tail N, n N) (new_head, new_tail N) {
 	var zero N
-	if *head == zero {
-		*head = n
-		*tail = *head
+	new_head = head
+	new_tail = tail
+	if head == zero {
+		new_head = n
+		new_tail = n
 	} else {
-		(*tail).SetNext(n)
-		n.SetPrev(*tail)
-		*tail = n
+		tail.SetNext(n)
+		n.SetPrev(tail)
+		new_tail = n
 	}
+	return
 }
 
-// Push node to begining of list
+// Push node to begining of list. Returns new (head, tail) that must be set
 func DoubleList_addFirst[N interface {
 	IDoubleLinkNode[N]
 	comparable
-}](head *N, tail *N, n N) {
+}](head N, tail N, n N) (new_head, new_tail N) {
 	var zero N
-	if *head == zero {
-		*head = n
-		*tail = n
+	new_head = head
+	new_tail = tail
+	if head == zero {
+		new_head = n
+		new_tail = n
 	} else {
-		(*head).SetPrev(n)
-		n.SetNext(*head)
-		*head = n
+		head.SetPrev(n)
+		n.SetNext(head)
+		new_head = n
 	}
+	return
 }
 
-// Remove given node from list
+// Remove given node from list. Returns new (head, tail) that must be set
 func DoubleList_remove[N interface {
 	IDoubleLinkNode[N]
 	comparable
-}](head *N, tail *N, n N) {
+}](head N, tail N, n N) (new_head, new_tail N) {
 	var zero N
+	new_head = head
+	new_tail = tail
 	prev := n.GetPrev()
 	next := n.GetNext()
 	if prev != zero {
@@ -182,12 +190,13 @@ func DoubleList_remove[N interface {
 	if next != zero {
 		next.SetPrev(prev)
 	}
-	if n == *head {
-		*head = (*head).GetNext()
+	if n == head {
+		new_head = head.GetNext()
 	}
-	if n == *tail {
-		*tail = (*tail).GetPrev()
+	if n == tail {
+		new_tail = tail.GetPrev()
 	}
 	n.SetNext(zero)
 	n.SetPrev(zero)
+	return
 }

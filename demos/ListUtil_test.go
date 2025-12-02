@@ -178,7 +178,7 @@ func TestDoubleList(t *testing.T) {
 
 	t.Run("push", func(t *testing.T) {
 		// Push a, b, c -> a <-> b <-> c
-		DoubleList_push(&first, &last, a)
+		first, last = DoubleList_push(first, last, a)
 		if first != a || last != a {
 			t.Fatalf("push [a] failed, first=%v, last=%v", first, last)
 		}
@@ -186,7 +186,7 @@ func TestDoubleList(t *testing.T) {
 			t.Fatal("[a] links wrong")
 		}
 
-		DoubleList_push(&first, &last, b)
+		first, last = DoubleList_push(first, last, b)
 		if first != a || last != b {
 			t.Fatal("push b failed")
 		}
@@ -194,7 +194,7 @@ func TestDoubleList(t *testing.T) {
 			t.Fatal("b links wrong")
 		}
 
-		DoubleList_push(&first, &last, c)
+		first, last = DoubleList_push(first, last, c)
 		if first != a || last != c {
 			t.Fatal("push c failed")
 		}
@@ -205,7 +205,7 @@ func TestDoubleList(t *testing.T) {
 
 	t.Run("foreach", func(t *testing.T) {
 		ids := []int{}
-		DoubleList_foreach(&first, func(n *MyDoubleNode) {
+		DoubleList_foreach(first, func(n *MyDoubleNode) {
 			ids = append(ids, n.ID)
 		})
 		if ids[0] != 1 || ids[1] != 2 || ids[2] != 3 {
@@ -216,7 +216,7 @@ func TestDoubleList(t *testing.T) {
 	t.Run("remove", func(t *testing.T) {
 		// list is a <-> b <-> c
 		// remove b -> a <-> c
-		DoubleList_remove(&first, &last, b)
+		first, last = DoubleList_remove(first, last, b)
 		if first != a || last != c {
 			t.Fatal("remove b failed")
 		}
@@ -228,7 +228,7 @@ func TestDoubleList(t *testing.T) {
 		}
 
 		// remove a -> c
-		DoubleList_remove(&first, &last, a)
+		first, last = DoubleList_remove(first, last, a)
 		if first != c || last != c {
 			t.Fatal("remove a failed")
 		}
@@ -237,7 +237,7 @@ func TestDoubleList(t *testing.T) {
 		}
 
 		// remove c -> empty
-		DoubleList_remove(&first, &last, c)
+		first, last = DoubleList_remove(first, last, c)
 		if first != nil || last != nil {
 			t.Fatal("remove c failed")
 		}
@@ -248,12 +248,12 @@ func TestDoubleList(t *testing.T) {
 		d := &MyDoubleNode{ID: 4}
 		e := &MyDoubleNode{ID: 5}
 
-		DoubleList_addFirst(&first, &last, d)
+		first, last = DoubleList_addFirst(first, last, d)
 		if first != d || last != d {
 			t.Fatal("addFirst d failed")
 		}
 
-		DoubleList_addFirst(&first, &last, e)
+		first, last = DoubleList_addFirst(first, last, e)
 		if first != e || last != d {
 			t.Fatal("addFirst e failed")
 		}
