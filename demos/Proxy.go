@@ -5,7 +5,7 @@ package demos
 // A proxy is an object that can be added to a broad-phase collision detection algorithm. Users of the collision part of the library can move an axis-aligned bounding box of a proxy through `BroadPhase` class.
 
 type IProxy interface {
-	IDoubleLinkINode[IProxy]
+	IDoubleLinkNode[IProxy]
 	GetID() int
 	GetAabbMin() Vec3
 	GetAabbMax() Vec3
@@ -36,19 +36,19 @@ func NewProxy(userData any, id int) *Proxy {
 
 // --- double linked list interface ---
 
-func (self *Proxy) GetINext() IProxy {
+func (self *Proxy) GetNext() IProxy {
 	return self.next
 }
 
-func (self *Proxy) SetINext(x IProxy) {
+func (self *Proxy) SetNext(x IProxy) {
 	self.next = x
 }
 
-func (self *Proxy) GetIPrev() IProxy {
+func (self *Proxy) GetPrev() IProxy {
 	return self.prev
 }
 
-func (self *Proxy) SetIPrev(x IProxy) {
+func (self *Proxy) SetPrev(x IProxy) {
 	self.prev = x
 }
 

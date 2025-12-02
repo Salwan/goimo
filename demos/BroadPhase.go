@@ -88,12 +88,12 @@ func (self *BroadPhase) _poolProxyPairs() {
 
 func (self *BroadPhase) _addProxy(p IProxy) {
 	self.numProxies++
-	self.proxyList, self.proxyListLast = DoubleListInterface_push(self.proxyList, self.proxyListLast, p)
+	self.proxyList, self.proxyListLast = DoubleList_push(self.proxyList, self.proxyListLast, p)
 }
 
 func (self *BroadPhase) _removeProxy(p IProxy) {
 	self.numProxies--
-	self.proxyList, self.proxyListLast = DoubleListInterface_remove(self.proxyList, self.proxyListLast, p)
+	self.proxyList, self.proxyListLast = DoubleList_remove(self.proxyList, self.proxyListLast, p)
 }
 
 func (self *BroadPhase) _aabbSegmentTest(aabbMin, aabbMax, begin, end Vec3) bool {

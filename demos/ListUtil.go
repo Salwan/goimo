@@ -59,63 +59,6 @@ func SingleList_pool[N interface {
 	return
 }
 
-///////////////////////////////////////////// Double List Interface
-// Special case of DoubleList_* that works for interfaces that are also adhoc double lists. It's critical to remember that these methods unlike normal ones return new (head, tail) that must be set otherwise the call won't work!
-// TODO: unify all DoubleList and SingleList calls to return new_head/new_tail to eliminate this special case implementation
-
-type IDoubleLinkINode[IN any] interface {
-	GetINext() IN
-	SetINext(x IN)
-	GetIPrev() IN
-	SetIPrev(x IN)
-}
-
-// Push interface node to end of list. Remember that it returns new (head, tail) that must be set
-func DoubleListInterface_push[IN interface {
-	IDoubleLinkINode[IN]
-	comparable
-}](head IN, tail IN, n IN) (out_head, out_tail IN) {
-	var zero IN
-	out_head = head
-	out_tail = tail
-	if head == zero {
-		out_head = n
-		out_tail = n
-	} else {
-		tail.SetINext(n)
-		n.SetIPrev(tail)
-		out_tail = n
-	}
-	return
-}
-
-// Remove given interface node from list. Remember that it returns new (head, tail) that must be set
-func DoubleListInterface_remove[IN interface {
-	IDoubleLinkINode[IN]
-	comparable
-}](head IN, tail IN, n IN) (out_head, out_tail IN) {
-	var zero IN
-	out_head = head
-	out_tail = tail
-	prev := n.GetIPrev() // must return an interface node
-	next := n.GetINext() // =
-	if prev != zero {
-		prev.SetINext(next)
-	}
-	if next != zero {
-		next.SetIPrev(prev)
-	}
-	if n == head {
-		out_head = head.GetINext()
-	}
-	if n == tail {
-		out_tail = tail.GetIPrev()
-	}
-	n.SetINext(zero)
-	n.SetIPrev(zero)
-	return
-}
-
 ///////////////////////////////////////////// Double List
 
 type IDoubleLinkNode[N any] interface {

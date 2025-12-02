@@ -266,7 +266,7 @@ func TestDoubleList(t *testing.T) {
 /////////////////////////////////// Double List Interface
 
 type IMyINode interface {
-	IDoubleLinkINode[IMyINode]
+	IDoubleLinkNode[IMyINode]
 	GetID() int
 }
 
@@ -276,11 +276,11 @@ type MyINode struct {
 	ID   int
 }
 
-func (n *MyINode) GetINext() IMyINode  { return n.Next }
-func (n *MyINode) SetINext(x IMyINode) { n.Next = x }
-func (n *MyINode) GetIPrev() IMyINode  { return n.Prev }
-func (n *MyINode) SetIPrev(x IMyINode) { n.Prev = x }
-func (n *MyINode) GetID() int          { return n.ID }
+func (n *MyINode) GetNext() IMyINode  { return n.Next }
+func (n *MyINode) SetNext(x IMyINode) { n.Next = x }
+func (n *MyINode) GetPrev() IMyINode  { return n.Prev }
+func (n *MyINode) SetPrev(x IMyINode) { n.Prev = x }
+func (n *MyINode) GetID() int         { return n.ID }
 
 // TestDoubleList_Interface tests the interface-based double linked list functions.
 func TestDoubleList_Interface(t *testing.T) {
@@ -301,31 +301,31 @@ func TestDoubleList_Interface(t *testing.T) {
 
 		// Push a -> list is now: a
 		var ia IMyINode = a
-		first, last = DoubleListInterface_push(first, last, ia)
+		first, last = DoubleList_push(first, last, ia)
 		if first != a || last != a {
 			t.Fatalf("push [a] failed, expected first and last to be 'a'; got first=%v, last=%v", first, last)
 		}
-		if a.GetIPrev() != zero || a.GetINext() != zero {
+		if a.GetPrev() != zero || a.GetNext() != zero {
 			t.Fatal("[a] links are incorrect after push")
 		}
 
 		// Push b -> list is now: a <-> b
 		var ib IMyINode = b
-		first, last = DoubleListInterface_push(first, last, ib)
+		first, last = DoubleList_push(first, last, ib)
 		if first != a || last != b {
 			t.Fatalf("push b failed, expected first=a and last=b; got first=%v, last=%v", first, last)
 		}
-		if a.GetINext() != b || b.GetIPrev() != a || b.GetINext() != zero {
+		if a.GetNext() != b || b.GetPrev() != a || b.GetNext() != zero {
 			t.Fatal("list links are incorrect after pushing b")
 		}
 
 		// Push c -> list is now: a <-> b <-> c
 		var ic IMyINode = c
-		first, last = DoubleListInterface_push(first, last, ic)
+		first, last = DoubleList_push(first, last, ic)
 		if first != a || last != c {
 			t.Fatalf("push c failed, expected first=a and last=c; got first=%v, last=%v", first, last)
 		}
-		if b.GetINext() != c || c.GetIPrev() != b || c.GetINext() != zero {
+		if b.GetNext() != c || c.GetPrev() != b || c.GetNext() != zero {
 			t.Fatal("list links are incorrect after pushing c")
 		}
 	})
@@ -342,46 +342,46 @@ func TestDoubleList_Interface(t *testing.T) {
 
 		first = a
 		last = c
-		a.SetINext(b)
-		a.SetIPrev(zero)
-		b.SetINext(c)
-		b.SetIPrev(a)
-		c.SetINext(zero)
-		c.SetIPrev(b)
+		a.SetNext(b)
+		a.SetPrev(zero)
+		b.SetNext(c)
+		b.SetPrev(a)
+		c.SetNext(zero)
+		c.SetPrev(b)
 
 		// Remove b -> list should be: a <-> c
 		var ib IMyINode = b
-		first, last = DoubleListInterface_remove(first, last, ib)
+		first, last = DoubleList_remove(first, last, ib)
 		if first != a || last != c {
 			t.Fatalf("remove b failed, expected first=a and last=c; got first=%v, last=%v", first, last)
 		}
-		if a.GetINext() != c || c.GetIPrev() != a {
+		if a.GetNext() != c || c.GetPrev() != a {
 			t.Fatal("links incorrect after removing b")
 		}
-		if b.GetINext() != zero || b.GetIPrev() != zero {
+		if b.GetNext() != zero || b.GetPrev() != zero {
 			t.Fatal("removed node b was not correctly isolated")
 		}
 
 		// Remove a (the head) -> list should be: c
 		var ia IMyINode = a
-		first, last = DoubleListInterface_remove(first, last, ia)
+		first, last = DoubleList_remove(first, last, ia)
 		if first != c || last != c {
 			t.Fatalf("remove a failed, expected first and last to be c; got first=%v, last=%v", first, last)
 		}
-		if c.GetIPrev() != zero || c.GetINext() != zero {
+		if c.GetPrev() != zero || c.GetNext() != zero {
 			t.Fatal("links incorrect after removing a")
 		}
-		if a.GetINext() != zero || a.GetIPrev() != zero {
+		if a.GetNext() != zero || a.GetPrev() != zero {
 			t.Fatal("removed node a was not correctly isolated")
 		}
 
 		// Remove c (the last node) -> list should be empty
 		var ic IMyINode = c
-		first, last = DoubleListInterface_remove(first, last, ic)
+		first, last = DoubleList_remove(first, last, ic)
 		if first != zero || last != zero {
 			t.Fatalf("remove c failed, expected first and last to be nil; got first=%v, last=%v", first, last)
 		}
-		if c.GetINext() != zero || c.GetIPrev() != zero {
+		if c.GetNext() != zero || c.GetPrev() != zero {
 			t.Fatal("removed node c was not correctly isolated")
 		}
 	})
