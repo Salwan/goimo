@@ -20,3 +20,31 @@ Porting Notes
 They are using a very cool system to optimize all math operations by flattening Vec3/Mat3/etc objects to their individual components. The way they do this is via the `M.hx` file which implements a lot of Haxe macro magic to modify function calls directly so they don't involve objects wrangling but direct primitive types.
 
 Go doesn't need this now as it allocates small types on the stack automatically and inlines things where possible. However, a similar approach might later be developed to implement manual SIMD math to speed up operation, for that floats have to be packed into vectors. Either way I'm avoiding allocations whenever `M.*` math functions are employed.
+
+### Minimum and Maximum macros
+
+These are used to execute one of three parts based on minimum or maximum of 3 values. To match their logic (handling equality fallthrough the same way) use:
+
+##### M.compare3min():
+
+```go
+if a < b && a < c {
+    doA()
+} else if a >= b && b < c {
+    doB()
+} else {
+    doC()
+}
+```
+
+##### M.compare3max():
+
+```go
+if a > b && a > c {
+    doA()
+} else if a <= b && b > c {
+    doB()
+} else {
+    doC()
+}
+```
