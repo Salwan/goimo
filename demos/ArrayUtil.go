@@ -22,10 +22,10 @@ func Array_expand[T any](arr []T) []T {
 }
 
 // Iterates array num of elements setting them to the zero value
-func Array_free[T any](arr []T, num int) {
+func Array_free[T any](arr []T, num *int) {
 	var zero T
-	for num > 0 {
-		num--
-		arr[num] = zero
+	for *num > 0 {
+		*num--
+		arr[*num] = zero
 	}
 }
