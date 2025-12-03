@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# partial LLM
-# requirements: pip3 install google-genai rich
-# markdown: dnf install glow
+# Gemini-driven code reviewer, partially LLM generated
+# python reqs: pip3 install google-genai rich
+# dnf reqs: dnf install glow
 
 import argparse
 import json
@@ -10,6 +10,7 @@ import shlex
 import subprocess
 import os
 
+import google.genai.errors
 from google import genai
 from google.genai.types import Tool, GenerateContentConfig, HarmCategory, SafetySetting
 
@@ -17,17 +18,19 @@ SETTINGS_FILENAME = os.path.expanduser("~/.OimoPhysics.reviewer")
 REVIEW_FILENAME = "review.result.md"
 OIMO_PHYSICS_PATH = os.path.expanduser("~/dev/OimoPhysics")
 
-
 def configure():
-    bash_cmd = f"source {shlex.quote(SETTINGS_FILENAME)} && env"
+    # This does not modify current environment, only python's os.environ map
+    print("Configuring..")
+    script_path = shlex.quote(SETTINGS_FILENAME)
+    command = ['bash', '-c', f'source "{script_path}" >/dev/null 2>&1 && env']
     result = subprocess.run(
-        ["bash", "-c", bash_cmd],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        check=True,
+        command, capture_output=True, text=True, check=True
     )
-
+    # Parse KEY=VALUE lines into os.environ
+    for line in result.stdout.splitlines():
+        if '=' in line:
+            key, value = line.split('=', 1)
+            os.environ[key] = value
 
 def load_file(path):
     with open(path, "r") as f:
@@ -144,20 +147,22 @@ Go file: ModuleName.go
 
     print(f"Reviewing {os.path.basename(haxe_file)} and {os.path.basename(go_file)}..")
 
-    response = client.models.generate_content(
-        model="gemini-2.5-pro",
-        contents=prompt,
-        config=GenerateContentConfig(
-            temperature=0,
-        ),
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-pro",
+            contents=prompt,
+            config=GenerateContentConfig(
+                temperature=0,
+            ),
+        )
 
-    # print(response.text)
-    markdown_output = response.text
-    write_output(REVIEW_FILENAME, markdown_output)
+        markdown_output = response.text
+        write_output(REVIEW_FILENAME, markdown_output)
 
-    print("---------------------------------------------")
-    print_markdown(REVIEW_FILENAME)
+        print("---------------------------------------------")
+        print_markdown(REVIEW_FILENAME)
+    except google.genai.errors.ServerError as e:
+        print("Google returned error: " + str(e))
 
 
 if __name__ == "__main__":
