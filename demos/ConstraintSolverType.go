@@ -7,6 +7,6 @@ package demos
 type ConstraintSolverType int
 
 const (
-	_ITERATIVE ConstraintSolverType = iota
-	_DIRECT
+	ConstraintSolverType_ITERATIVE ConstraintSolverType = iota
+	ConstraintSolverType_DIRECT
 )

@@ -36,9 +36,21 @@ func NewJointSolverInfoRow() *JointSolverInfoRow {
 	}
 }
 
-func (j *JointSolverInfoRow) clear() {
+func (j *JointSolverInfoRow) Clear() {
 	j.jacobian.clear()
 	j.rhs, j.cfm = 0, 0
 	j.minImpulse, j.maxImpulse, j.motorSpeed, j.motorMaxImpulse = 0, 0, 0, 0
 	j.impulse = nil
+}
+
+func (j *JointSolverInfoRow) EqualLimit(rhs, cfm float64) {
+	j.rhs = rhs
+	j.cfm = cfm
+	j.minImpulse = MathUtil.NEGATIVE_INFINITY
+	j.maxImpulse = MathUtil.POSITIVE_INFINITY
+}
+
+func (j *JointSolverInfoRow) Motor(speed, maxImpulse float64) {
+	j.motorSpeed = speed
+	j.motorMaxImpulse = maxImpulse
 }

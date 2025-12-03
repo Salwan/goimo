@@ -22,10 +22,10 @@ func NewJointSolverInfo() *JointSolverInfo {
 	return j
 }
 
-func (j *JointSolverInfo) addRow(impulse *JointImpulse) *JointSolverInfoRow {
+func (j *JointSolverInfo) AddRow(impulse *JointImpulse) *JointSolverInfoRow {
 	row := j.rows[j.numRows]
 	j.numRows++
-	row.clear()
+	row.Clear()
 	row.impulse = impulse
 	return row
 }

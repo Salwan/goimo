@@ -25,9 +25,11 @@ type EpaTriangle struct {
 	id  int
 }
 
+// static
 var _epaTriangle_nextIndex int = 0
 
 func NewEpaTriangle() *EpaTriangle {
+	_epaTriangle_nextIndex++
 	et := EpaTriangle{
 		vertices:          make([]*EpaVertex, 3),
 		adjacentTriangles: make([]*EpaTriangle, 3),
@@ -35,12 +37,7 @@ func NewEpaTriangle() *EpaTriangle {
 		nextIndex:         []int{1, 2, 0},
 		id:                _epaTriangle_nextIndex,
 	}
-	_epaTriangle_nextIndex++
 
-	for i := range 3 {
-		et.vertices[i] = NewEpaVertex()
-		et.adjacentTriangles[i] = NewEpaTriangle()
-	}
 	return &et
 }
 
@@ -97,9 +94,9 @@ func (self *EpaTriangle) init(vertex1, vertex2, vertex3 *EpaVertex, center Vec3,
 		}
 	}
 
-	*self.vertices[0] = *vertex1
-	*self.vertices[1] = *vertex2
-	*self.vertices[2] = *vertex3
+	self.vertices[0] = vertex1
+	self.vertices[1] = vertex2
+	self.vertices[2] = vertex3
 	self.normal = inor
 	SimplexUtil.projectOrigin3(vertex1.v, vertex2.v, vertex3.v, &self.tmp)
 	self.distanceSq = self.tmp.LengthSq()
@@ -121,7 +118,7 @@ func (self *EpaTriangle) setAdjacentTriangle(triangle *EpaTriangle) bool {
 			i2 := self.nextIndex[i]
 			j2 := self.nextIndex[j]
 			if self.vertices[i] == triangle.vertices[j2] && self.vertices[i2] == triangle.vertices[j] {
-				*self.adjacentTriangles[i] = *triangle
+				self.adjacentTriangles[i] = triangle
 				triangle.adjacentTriangles[j] = self
 
 				self.adjacentPairIndex[i] = j
@@ -132,9 +129,8 @@ func (self *EpaTriangle) setAdjacentTriangle(triangle *EpaTriangle) bool {
 		}
 	}
 	if count != 1 {
-		debug.GjkLog("invalid polyhedron")
 		debug.GjkLog("%d %d %d", self.vertices[0].randId, self.vertices[1].randId, self.vertices[2].randId)
-		debug.GjkLog("%d %d %d", triangle.vertices[0].randId, triangle.vertices[1].randId, triangle.vertices[2])
+		debug.GjkLog("%d %d %d", triangle.vertices[0].randId, triangle.vertices[1].randId, triangle.vertices[2].randId)
 		return false // invalid polyhedron
 	}
 	return true

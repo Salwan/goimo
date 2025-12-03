@@ -37,5 +37,6 @@ func (imp *ContactImpulse) copyFrom(other *ContactImpulse) {
 	imp.impulseN = other.impulseN
 	imp.impulseT = other.impulseT
 	imp.impulseB = other.impulseB
+	// TODO: Oimo code doesn't copy other.impulseP here, is this intentional?
 	imp.impulseL = other.impulseL
 }

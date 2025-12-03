@@ -4,13 +4,16 @@ package demos
 // (oimo/collision/geometry/ConvexGeometry.go)
 // Abstract class of the convex collision geometries supported by GJK/EPA collision detection.
 type IConvexGeometry interface {
-	// Computes supporting vertex of the "core" of the geometry in local coordinates. Note that the direction vector `dir` might not be normalized. `out` is set to the computed supporting vertex.
-	ComputeLocalSupportingVertex(dir Vec3, out *Vec3)
 
 	// Gjk Margin should not < 0
 	GetGjkMargin() float64
 
 	SetGjkMargin(gjk_margin float64)
+
+	// Computes supporting vertex of the "core" of the geometry in local coordinates. Note that the direction vector `dir` might not be normalized. `out` is set to the computed supporting vertex.
+	ComputeLocalSupportingVertex(dir Vec3, out *Vec3)
+
+	RayCast(begin, end Vec3, transform *Transform, hit *RayCastHit) bool
 }
 
 type ConvexGeometry struct {
@@ -29,20 +32,22 @@ func NewConvexGeometry(_type_ GeometryType) *ConvexGeometry {
 	}
 }
 
-func (cg *ConvexGeometry) GetGjkMargin() float64 {
+func (cg *ConvexGeometry) GetGjkMargin() float64 { // override
 	return cg.gjkMargin
 }
 
-func (cg *ConvexGeometry) SetGjkMargin(gjk_margin float64) {
+func (cg *ConvexGeometry) SetGjkMargin(gjk_margin float64) { // override
 	if gjk_margin < 0 {
 		gjk_margin = 0
 	}
 	cg.gjkMargin = gjk_margin
 }
 
-func (cg *ConvexGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) {}
+func (cg *ConvexGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) { // override
 
-func (cg *ConvexGeometry) RayCast(begin, end Vec3, transform *Transform, hit *RayCastHit) bool {
+}
+
+func (cg *ConvexGeometry) RayCast(begin, end Vec3, transform *Transform, hit *RayCastHit) bool { // override
 	if cg.useGjkRayCast {
 		return GjkEpaInstance.RayCast(cg, transform, begin, end, hit)
 	} else {

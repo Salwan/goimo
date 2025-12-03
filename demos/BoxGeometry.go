@@ -3,7 +3,7 @@ package demos
 import "math"
 
 //////////////////////////////////////////////// BoxGeometry
-// (oimo/path)
+// (oimo/oimo/collision/geometry/BoxGeometry.go)
 // A box collision geometry.
 
 type BoxGeometry struct {
@@ -34,11 +34,17 @@ func NewBoxGeometry(halfExtents Vec3) *BoxGeometry {
 	return b
 }
 
-func (b *BoxGeometry) getHalfExtentsTo(halfExtents *Vec3) {
+// Returns the half-extents of the box.
+func (b *BoxGeometry) GetHalfExtents() Vec3 {
+	return b.halfExtents
+}
+
+// Sets `halfExtents` to the half-extents of the box.
+func (b *BoxGeometry) GetHalfExtentsTo(halfExtents *Vec3) {
 	*halfExtents = b.halfExtents
 }
 
-func (b *BoxGeometry) UpdateMass() {
+func (b *BoxGeometry) UpdateMass() { // override
 	b.volume = 8 * b.halfExtents.x * b.halfExtents.y * b.halfExtents.z
 	sq := b.halfExtents.CompWiseMul(b.halfExtents)
 	MathUtil.Mat3_diagonal(&b.inertiaCoeff,
@@ -47,7 +53,7 @@ func (b *BoxGeometry) UpdateMass() {
 		1.0/3.0*(sq.x+sq.y))
 }
 
-func (b *BoxGeometry) ComputeAabb(aabb *Aabb, tf *Transform) {
+func (b *BoxGeometry) ComputeAabb(aabb *Aabb, tf *Transform) { // override
 	tfx := b.halfAxisX.MulMat3(&tf.rotation)
 	tfy := b.halfAxisY.MulMat3(&tf.rotation)
 	tfz := b.halfAxisZ.MulMat3(&tf.rotation)
@@ -63,7 +69,7 @@ func (b *BoxGeometry) ComputeAabb(aabb *Aabb, tf *Transform) {
 	aabb.Max = tf.position.Add(tfs)
 }
 
-func (b *BoxGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) {
+func (b *BoxGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) { // override
 	gjkMargins := Vec3{b.gjkMargin, b.gjkMargin, b.gjkMargin}
 	// avoid making core extents negative
 	MathUtil.Vec3_min(&gjkMargins, &gjkMargins, &b.halfExtents)
@@ -85,7 +91,7 @@ func (b *BoxGeometry) ComputeLocalSupportingVertex(dir Vec3, out *Vec3) {
 	}
 }
 
-func (b *BoxGeometry) RayCastLocal(begin, end Vec3, hit *RayCastHit) bool {
+func (b *BoxGeometry) RayCastLocal(begin, end Vec3, hit *RayCastHit) bool { // override
 	p1x, p1y, p1z := begin.x, begin.y, begin.z
 	p2x, p2y, p2z := end.x, end.y, end.z
 	halfW, halfH, halfD := b.halfExtents.x, b.halfExtents.y, b.halfExtents.z

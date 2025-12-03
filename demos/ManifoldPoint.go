@@ -39,7 +39,7 @@ func (self *ManifoldPoint) clear() {
 	self.localPos1.Zero()
 	self.localPos2.Zero()
 	self.relPos1.Zero()
-	self.relPos1.Zero()
+	self.relPos2.Zero()
 	self.pos1.Zero()
 	self.pos2.Zero()
 	self.depth = 0
@@ -114,7 +114,7 @@ func (self *ManifoldPoint) GetPosition1To(position *Vec3) {
 }
 
 // Returns the second rigid body's manifold point in world coordinate.
-func (self *ManifoldPoint) getPosition2() Vec3 {
+func (self *ManifoldPoint) GetPosition2() Vec3 {
 	return self.pos2
 }
 

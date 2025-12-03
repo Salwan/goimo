@@ -499,7 +499,7 @@ func (self *RigidBody) GetAngularVelocity() Vec3 {
 // Sets `angularVelocity` to the angular velocity of the rigid body.
 // This does not create a new intrance of `Vec3`.
 func (self *RigidBody) GetAngularVelocityTo(angularVelocity *Vec3) {
-	// There's a mistake in OimoPhysics code, it's returning _vel not _angVel
+	// FIX: There's a mistake in OimoPhysics code, it's returning _vel not _angVel
 	*angularVelocity = self.angVel
 }
 

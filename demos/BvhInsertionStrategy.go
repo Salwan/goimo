@@ -8,6 +8,6 @@ package demos
 type BvhInsertionStrategy int
 
 const (
-	_SIMPLE BvhInsertionStrategy = iota
-	_MINIMIZE_SURFACE_AREA
+	BvhInsertionStrategy_SIMPLE BvhInsertionStrategy = iota
+	BvhInsertionStrategy_MINIMIZE_SURFACE_AREA
 )

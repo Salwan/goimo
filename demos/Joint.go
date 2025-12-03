@@ -74,9 +74,9 @@ func NewJoint(config *JointConfig, _type int) *Joint {
 	j.link2 = NewJointLink(j)
 
 	switch config.solverType {
-	case _DIRECT:
+	case ConstraintSolverType_DIRECT:
 		j.solver = NewDirectJointConstraintSolver(j)
-	case _ITERATIVE:
+	case ConstraintSolverType_ITERATIVE:
 		j.solver = NewPgsJointConstraintSolver(j)
 	}
 

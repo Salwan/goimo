@@ -13,7 +13,7 @@ type BvhStrategy struct {
 
 func NewBvhStrategy() *BvhStrategy {
 	return &BvhStrategy{
-		insertionStrategy: _SIMPLE,
+		insertionStrategy: BvhInsertionStrategy_SIMPLE,
 	}
 }
 
@@ -22,12 +22,13 @@ func NewBvhStrategy() *BvhStrategy {
 // Returns the next step of leaf insertion. `0` or `1` to descend to corresponding child of current node. `-1` to stop descending and make common parent with current node.
 func (self *BvhStrategy) decideInsertion(currentNode *BvhNode, leaf *BvhNode) int {
 	switch self.insertionStrategy {
-	case _SIMPLE:
+	case BvhInsertionStrategy_SIMPLE:
 		return self._decideInsertionSimple(currentNode, leaf)
-	case _MINIMIZE_SURFACE_AREA:
+	case BvhInsertionStrategy_MINIMIZE_SURFACE_AREA:
 		return self._decideInsertionMinimumSurfaceArea(currentNode, leaf)
 	default:
-		panic(fmt.Errorf("Invalid BVH insertion strategy: %v", self.insertionStrategy))
+		fmt.Errorf("Invalid BVH insertion strategy: %v", self.insertionStrategy)
+		return -1
 	}
 }
 
@@ -97,7 +98,7 @@ func (self *BvhStrategy) _decideInsertionMinimumSurfaceArea(currentNode *BvhNode
 
 	if creatingCost < descendingCost1 && creatingCost < descendingCost2 {
 		return -1
-	} else if descendingCost1 < creatingCost && descendingCost1 < descendingCost2 {
+	} else if creatingCost >= descendingCost1 && descendingCost1 < descendingCost2 {
 		return 0
 	} else {
 		return 1
@@ -109,7 +110,7 @@ func (self *BvhStrategy) _splitLeavesMean(leaves []*BvhNode, from int, until int
 
 	// mean := sum(min + max) / n
 	var centerMean Vec3
-	for i := range until {
+	for i := from; i < until; i++ {
 		leaf := leaves[i]
 		leaf.tmp = leaf.aabbMax.Add(leaf.aabbMin)
 		centerMean.AddEq(leaf.tmp)
@@ -117,7 +118,7 @@ func (self *BvhStrategy) _splitLeavesMean(leaves []*BvhNode, from int, until int
 	centerMean.ScaleEq(invN)
 
 	var variance Vec3
-	for i := range until {
+	for i := from; i < until; i++ {
 		leaf := leaves[i]
 		diff := leaf.tmp.Sub(centerMean)
 		diff.CompWiseMulEq(diff)
@@ -156,7 +157,7 @@ func (self *BvhStrategy) _splitLeavesMean(leaves []*BvhNode, from int, until int
 			l++
 			r--
 		}
-	} else if vary > varx && vary > varz {
+	} else if varx <= vary && vary > varz {
 		mean := centerMean.y
 		for {
 			for {
@@ -205,6 +206,5 @@ func (self *BvhStrategy) _splitLeavesMean(leaves []*BvhNode, from int, until int
 			r--
 		}
 	}
-
-	return 1
+	return l
 }

@@ -198,7 +198,7 @@ func (self *BvhTree) _decomposeRecursive(root *BvhNode) {
 
 func (self *BvhTree) _buildTopDownRecursive(leaves []*BvhNode, from int, until int) *BvhNode {
 	num := until - from
-	if debug.Debug && num > 0 {
+	if debug.Debug && num < 0 {
 		panic("Oimo asserts here")
 	}
 	if num == 1 {

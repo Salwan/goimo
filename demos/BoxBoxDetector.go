@@ -1,6 +1,9 @@
 package demos
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 //////////////////////////////////////////////// BoxBoxDetector
 // (oimo/collision/narrowphase/detector/BoxBoxDetector.go)
@@ -281,17 +284,17 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 		p1.AddEq(c1)
 
 		switch id2 {
-		case 0: // user y and z
+		case 0: // use y and z
 			d2 = x2
 			_supportingVertexRect(&p2, sy2, sz2, mAxis)
 		case 1: // use x and z
 			d2 = y2
-			_supportingVertexRect(&p2, sx1, sz2, mAxis)
+			_supportingVertexRect(&p2, sx2, sz2, mAxis)
 		default: // use x and y
 			d2 = z2
 			_supportingVertexRect(&p2, sx2, sy2, mAxis)
 		}
-		p2.AddEq(c2)
+		MathUtil.Vec3_sub(&p2, &c2, &p2)
 
 		// compute params
 		r := p1.Sub(p2)
@@ -306,7 +309,7 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 
 		// compute closest points and normal
 		var cp1, cp2 Vec3
-		MathUtil.Vec3_addRhsScaled(&cp1, &p1, &p2, t1)
+		MathUtil.Vec3_addRhsScaled(&cp1, &p1, &d1, t1)
 		MathUtil.Vec3_addRhsScaled(&cp2, &p2, &d2, t2)
 
 		normal := mAxis.Negate()
@@ -318,6 +321,8 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 	}
 
 	// --------------------- face-face collision check ---------------------
+
+	var swapped bool
 
 	if mId >= 3 { // swap box1 and box2
 		mSign = -mSign
@@ -335,9 +340,9 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 		sz1, sz2 = sz2, sz1
 
 		mId -= 3
-		bbd.swapped = true
+		swapped = true
 	} else {
-		bbd.swapped = false
+		swapped = false
 	}
 
 	// --------------------- find reference face ---------------------
@@ -387,6 +392,7 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 	incDot := refNormal.Dot(x2)
 	if incDot < minIncDot { // x+
 		minIncDot = incDot
+		incId = 0
 	}
 	if -incDot < minIncDot { // x-
 		minIncDot = -incDot
@@ -441,6 +447,7 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 	bbd.clipper.addIncidentVertex(incV2.Dot(refX), incV2.Dot(refY), incV2.x, incV2.y, incV2.z)
 	bbd.clipper.addIncidentVertex(incV3.Dot(refX), incV3.Dot(refY), incV3.x, incV3.y, incV3.z)
 	bbd.clipper.addIncidentVertex(incV4.Dot(refX), incV4.Dot(refY), incV4.x, incV4.y, incV4.z)
+	bbd.clipper.clip()
 
 	// --------------------- reduce vertices ---------------------
 
@@ -450,7 +457,7 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 
 	// set normal
 	var normal Vec3
-	if bbd.swapped {
+	if swapped {
 		normal = refNormal
 	} else {
 		normal = refNormal.Negate()
@@ -471,7 +478,7 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 		MathUtil.Vec3_addRhsScaled(&clippedVertexOnRefFace, &clippedVertex, &refNormal, depth)
 
 		if depth > -Settings.ContactPersistenceThreshold {
-			if bbd.swapped {
+			if swapped {
 				bbd.addPoint(result, clippedVertex, clippedVertexOnRefFace, depth, i)
 			} else {
 				bbd.addPoint(result, clippedVertexOnRefFace, clippedVertex, depth, i)
@@ -482,32 +489,18 @@ func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeom
 
 // Returns half of the projected length of the box with scaled bases (`sx`, `sy`, `sz`) onto the normalized axis `axis`.
 func (bbd *BoxBoxDetector) project(axis, sx, sy, sz Vec3) float64 {
-	dx := axis.Dot(sx)
-	dy := axis.Dot(sy)
-	dz := axis.Dot(sz)
+	dx := math.Abs(axis.Dot(sx))
+	dy := math.Abs(axis.Dot(sy))
+	dz := math.Abs(axis.Dot(sz))
 
-	if dx < 0 {
-		dx = -dx
-	}
-	if dy < 0 {
-		dy = -dy
-	}
-	if dz < 0 {
-		dz = -dz
-	}
 	return dx + dy + dz
 }
 
 // 2D version of `project`.
 func (bbd *BoxBoxDetector) project2(axis, sx, sy Vec3) float64 {
-	dx := axis.Dot(sx)
-	dy := axis.Dot(sy)
-	if dx < 0 {
-		dx = -dx
-	}
-	if dy < 0 {
-		dy = -dy
-	}
+	dx := math.Abs(axis.Dot(sx))
+	dy := math.Abs(axis.Dot(sy))
+
 	return dx + dy
 }
 
@@ -533,8 +526,6 @@ func _satCheck(minDepth *float64, minDepthId, minDepthSign *int, minDepthAxis *V
 				*minDepthSign = 1
 			}
 		}
-	} else {
-		return
 	}
 }
 

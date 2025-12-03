@@ -122,7 +122,7 @@ func (self *BvhBroadPhase) _convexCastRecursive(node *BvhNode, convex IConvexGeo
 	self._convexCastRecursive(node.children[1], convex, begin, translation, callback)
 }
 
-func (self *BvhBroadPhase) _aabbTestRecursive(node *BvhNode, aabb Aabb, callback IBroadPhaseProxyCallback) {
+func (self *BvhBroadPhase) _aabbTestRecursive(node *BvhNode, aabb *Aabb, callback IBroadPhaseProxyCallback) {
 	if !MathUtil.Aabb_overlap(&node.aabbMin, &node.aabbMax, &aabb.Min, &aabb.Max) {
 		return
 	}
@@ -237,7 +237,7 @@ func (self *BvhBroadPhase) AabbTest(aabb *Aabb, callback IBroadPhaseProxyCallbac
 	if self.Tree.root == nil {
 		return // no AABBs in the broadphase
 	}
-	self._aabbTestRecursive(self.Tree.root, *aabb, callback)
+	self._aabbTestRecursive(self.Tree.root, aabb, callback)
 }
 
 // Returns the balance of the bounding volume tree.

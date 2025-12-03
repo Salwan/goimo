@@ -44,7 +44,7 @@ func (self *Manifold) buildBasis(normal Vec3) {
 		bx = ny*tz - nz*ty
 		by = -nx * tz
 		bz = nx * ty
-	} else if ny2 < nx2 && ny2 < nz2 {
+	} else if nx2 >= ny2 && ny2 < nz2 {
 		invL := 1.0 / MathUtil.Sqrt(nx2+nz2)
 		tx = nz * invL
 		ty = 0

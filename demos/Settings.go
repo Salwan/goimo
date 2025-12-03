@@ -101,7 +101,7 @@ var Settings = SettingsStruct{
 	MaxManifoldPoints:                                              4,
 
 	// joints
-	DefaultJointConstraintSolverType:        _ITERATIVE,
+	DefaultJointConstraintSolverType:        ConstraintSolverType_ITERATIVE,
 	DefaultJointPositionCorrectionAlgorithm: _BAUMGARTE,
 	JointWarmStartingFactorForBaungarte:     0.8,
 	JointWarmStartingFactor:                 0.95,

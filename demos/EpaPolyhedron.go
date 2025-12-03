@@ -29,9 +29,6 @@ func NewEpaPolyhedron() *EpaPolyhedron {
 	e := &EpaPolyhedron{
 		vertices: make([]*EpaVertex, Settings.MaxEPAVertices),
 	}
-	for i := range len(e.vertices) {
-		e.vertices[i] = NewEpaVertex()
-	}
 	return e
 }
 
@@ -50,13 +47,13 @@ func (self *EpaPolyhedron) _poolTriangle(t *EpaTriangle) {
 
 func (self *EpaPolyhedron) _setAdjacentTriangle(t1, t2 *EpaTriangle) {
 	if !t1.setAdjacentTriangle(t2) {
-		self.status = _INVALID_TRIANGLE
+		self.status = EpaPolyhedronState_INVALID_TRIANGLE
 	}
 }
 
 func (self *EpaPolyhedron) _initTriangle(t *EpaTriangle, vertex1, vertex2, vertex3 *EpaVertex, center Vec3, autoCheck bool) {
 	if !t.init(vertex1, vertex2, vertex3, center, autoCheck) {
-		self.status = _INVALID_TRIANGLE
+		self.status = EpaPolyhedronState_INVALID_TRIANGLE
 	}
 }
 
@@ -87,12 +84,12 @@ func (self *EpaPolyhedron) _validate() bool {
 			t.vertices[i].tmpEdgeLoopOuterTriangle = nil
 			t.vertices[i].tmpEdgeLoopNext = nil
 			if t.adjacentPairIndex[i] == -1 {
-				self.status = _NO_ADJACENT_PAIR_INDEX
+				self.status = EpaPolyhedronState_NO_ADJACENT_PAIR_INDEX
 				return false
 				//(oimo) throw M.error("!?")
 			}
 			if t.adjacentTriangles[i] == nil {
-				self.status = _NO_ADJACENT_TRIANGLE
+				self.status = EpaPolyhedronState_NO_ADJACENT_TRIANGLE
 				return false
 				//throw M.error("!?")
 			}
@@ -108,7 +105,7 @@ func (self *EpaPolyhedron) _findEdgeLoop(id int, base *EpaTriangle, from Vec3) {
 	base.tmpDfsId = id
 	debug.GjkLog("DFS: %d", base.id)
 	if !base.checkVisible(id, from) {
-		self.status = _TRIANGLE_INVISIBLE
+		self.status = EpaPolyhedronState_TRIANGLE_INVISIBLE
 		debug.GjkLog("tri %d is invisible", base.id)
 		return
 	}
@@ -120,17 +117,17 @@ func (self *EpaPolyhedron) _findEdgeLoop(id int, base *EpaTriangle, from Vec3) {
 			continue
 		}
 		if t.checkVisible(id, from) {
-			debug.GjkLog("tri %d is visible.")
+			debug.GjkLog("tri %d is visible.", t.id)
 			self._findEdgeLoop(id, t, from)
 		} else {
 			// triangle `base` can be seen from `from`, but triangle `t` cannot.
-			debug.GjkLog("tri  %d is invisible.")
+			debug.GjkLog("tri  %d is invisible.", t.id)
 			debug.GjkLog("added edge: %d %d", base.id, t.id)
 			i2 := base.nextIndex[i]
 			v1 := base.vertices[i]
 			v2 := base.vertices[i2]
-			*v1.tmpEdgeLoopNext = *v2
-			*v1.tmpEdgeLoopOuterTriangle = *t
+			v1.tmpEdgeLoopNext = v2
+			v1.tmpEdgeLoopOuterTriangle = t
 		}
 	}
 
@@ -187,13 +184,13 @@ func (self *EpaPolyhedron) clear() {
 }
 
 func (self *EpaPolyhedron) init(v1, v2, v3, v4 *EpaVertex) bool {
-	self.status = _OK
+	self.status = EpaPolyhedronState_OK
 	self.numVertices = 4
 
-	*self.vertices[0] = *v1
-	*self.vertices[1] = *v2
-	*self.vertices[2] = *v3
-	*self.vertices[3] = *v4
+	self.vertices[0] = v1
+	self.vertices[1] = v2
+	self.vertices[2] = v3
+	self.vertices[3] = v4
 	self.center.CopyFrom(v1.v).AddEq(v2.v).AddEq(v3.v).AddEq(v4.v).ScaleEq(0.25)
 
 	t1 := self._pickTriangle()
@@ -218,7 +215,7 @@ func (self *EpaPolyhedron) init(v1, v2, v3, v4 *EpaVertex) bool {
 	self._addTriangle(t3)
 	self._addTriangle(t4)
 
-	return self.status == _OK
+	return self.status == EpaPolyhedronState_OK
 }
 
 func (self *EpaPolyhedron) getBestTriangle() *EpaTriangle {
@@ -234,7 +231,7 @@ func (self *EpaPolyhedron) getBestTriangle() *EpaTriangle {
 }
 
 func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool {
-	*self.vertices[self.numVertices] = *vertex
+	self.vertices[self.numVertices] = vertex
 	self.numVertices++
 
 	debug.GjkLog("vertex added %d %v", self.numVertices, vertex.v)
@@ -246,7 +243,7 @@ func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool 
 
 	// make a hole on the polyhedron finding its edge loop
 	self._findEdgeLoop(self.numVertices, base, vertex.v)
-	if self.status != _OK {
+	if self.status != EpaPolyhedronState_OK {
 		return false
 	}
 
@@ -263,11 +260,11 @@ func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool 
 		if v.tmpEdgeLoopNext == nil {
 			debug.GjkLog("edge loop is broken:")
 			self.dumpAsObjModel()
-			self.status = _EDGE_LOOP_BROKEN
+			self.status = EpaPolyhedronState_EDGE_LOOP_BROKEN
 			return false
 		}
 		if v.tmpEdgeLoopOuterTriangle == nil {
-			self.status = _NO_OUTER_TRIANGLE
+			self.status = EpaPolyhedronState_NO_OUTER_TRIANGLE
 			return false
 		}
 
@@ -278,7 +275,7 @@ func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool 
 		debug.GjkLog("patching...")
 
 		self._initTriangle(t, v, v.tmpEdgeLoopNext, vertex, self.center, false)
-		if self.status != _OK {
+		if self.status != EpaPolyhedronState_OK {
 			return false
 		}
 		self._addTriangle(t)
@@ -298,7 +295,7 @@ func (self *EpaPolyhedron) addVertex(vertex *EpaVertex, base *EpaTriangle) bool 
 	}
 	self._setAdjacentTriangle(prevT, firstT)
 
-	return self.status == _OK && self._validate()
+	return self.status == EpaPolyhedronState_OK && self._validate()
 }
 
 func (self *EpaPolyhedron) dumpAsObjModel() {

@@ -14,6 +14,6 @@ func NewJointImpulse() *JointImpulse {
 	return &JointImpulse{}
 }
 
-func (j *JointImpulse) clear() {
+func (j *JointImpulse) Clear() {
 	j.impulse, j.impulseM, j.impulseP = 0.0, 0.0, 0.0
 }

@@ -7,11 +7,11 @@ package demos
 type EpaPolyhedronState int
 
 const (
-	_OK EpaPolyhedronState = iota
-	_INVALID_TRIANGLE
-	_NO_ADJACENT_PAIR_INDEX
-	_NO_ADJACENT_TRIANGLE
-	_EDGE_LOOP_BROKEN
-	_NO_OUTER_TRIANGLE
-	_TRIANGLE_INVISIBLE
+	EpaPolyhedronState_OK EpaPolyhedronState = iota
+	EpaPolyhedronState_INVALID_TRIANGLE
+	EpaPolyhedronState_NO_ADJACENT_PAIR_INDEX
+	EpaPolyhedronState_NO_ADJACENT_TRIANGLE
+	EpaPolyhedronState_EDGE_LOOP_BROKEN
+	EpaPolyhedronState_NO_OUTER_TRIANGLE
+	EpaPolyhedronState_TRIANGLE_INVISIBLE
 )
