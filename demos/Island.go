@@ -33,10 +33,10 @@ func NewIsland() *Island {
 }
 
 func (island *Island) clear() {
-	Array_free(island.rigidBodies, island.numRigidBodies)
-	Array_free(island.solvers, island.numSolvers)
-	Array_free(island.solversSi, island.numSolversSi)
-	Array_free(island.solversNgs, island.numSolversNgs)
+	Array_free(island.rigidBodies, &island.numRigidBodies)
+	Array_free(island.solvers, &island.numSolvers)
+	Array_free(island.solversSi, &island.numSolversSi)
+	Array_free(island.solversNgs, &island.numSolversNgs)
 }
 
 func fastInvExp(x float64) float64 {
@@ -136,7 +136,7 @@ func (island *Island) AddConstraintSolver(solver IConstraintSolver, positionCorr
 }
 
 // steps the island with multiple bodies and constraints
-func (island *Island) step(timeStep TimeStep, numVelocityIterations int, numPositionIterations int) {
+func (island *Island) Step(timeStep TimeStep, numVelocityIterations int, numPositionIterations int) {
 	dt := timeStep.Dt
 
 	sleepIsland := true

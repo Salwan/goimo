@@ -80,7 +80,7 @@ func (cm *ContactManager) _createContacts() {
 			cm.contactPool, c = SingleList_pick(cm.contactPool, NewContact)
 			cm.contactList, cm.contactListLast = DoubleList_push(cm.contactList, cm.contactListLast, c)
 			c.latest = true
-			c.attach(s1, s2, cm.collisionMatrix.GetDetector(s1.geom.(*Geometry)._type, s2.geom.(*Geometry)._type))
+			c.attach(s1, s2, cm.collisionMatrix.GetDetector(s1.geom.GetType(), s2.geom.GetType()))
 			cm.numContacts++
 		}
 	}

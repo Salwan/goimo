@@ -28,9 +28,12 @@ type World struct {
 	rigidBodyStack      []*RigidBody
 	solversInIslands    []IConstraintSolver
 	numSolversInIslands int
-	rayCastWrapper      *RayCastWrapper
-	convexCastWrapper   *ConvexCastWrapper
-	aabbTestWrapper     *AabbTestWrapper
+
+	debugDraw *DebugDraw
+
+	rayCastWrapper    *RayCastWrapper
+	convexCastWrapper *ConvexCastWrapper
+	aabbTestWrapper   *AabbTestWrapper
 
 	pool         *Pool
 	shapeIdCount int
@@ -115,7 +118,7 @@ func (w *World) solveIslands() {
 
 		w.buildIsland(b)
 
-		w.island.step(*w.timeStep, w.numVelocityIterations, w.numPositionIterations)
+		w.island.Step(*w.timeStep, w.numVelocityIterations, w.numPositionIterations)
 		w.island.clear()
 		w.numIslands++
 	}
@@ -132,9 +135,12 @@ func (w *World) solveIslands() {
 	}
 
 	for w.numSolversInIslands > 0 {
-		w.numSolversInIslands--
-		w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
-		w.solversInIslands[w.numSolversInIslands] = nil
+		// Use Go clearing, but this is kept for reference
+		// w.numSolversInIslands--
+		// w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
+		// w.solversInIslands[w.numSolversInIslands] = nil
+
+		w.solversInIslands = w.solversInIslands[:0]
 	}
 }
 
@@ -218,7 +224,7 @@ func (self *World) addShape(shape *Shape) {
 	self.numShapes++
 }
 
-func (self *World) _removeShape(shape *Shape) {
+func (self *World) removeShape(shape *Shape) {
 	self.broadPhase.DestroyProxy(shape.proxy)
 	shape.proxy = nil
 	shape.id = -1
@@ -235,11 +241,141 @@ func (self *World) _removeShape(shape *Shape) {
 	self.numShapes--
 }
 
-func (w *World) AddRigidBody(rigidBody *RigidBody) {}
+// Debug Drawing
+
+func (self *World) drawBvh(d *DebugDraw, tree *BvhTree) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawBvhNode(d *DebugDraw, node *BvhNode, level int, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawRigidBodies(d *DebugDraw) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawBasis(d *DebugDraw, tf *Transform) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawShape(d *DebugDraw, geom *Geometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawSphere(d *DebugDraw, g *SphereGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawBox(d *DebugDraw, g *BoxGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawCylinder(d *DebugDraw, g *CylinderGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawCone(d *DebugDraw, g *ConeGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawCapsule(d *DebugDraw, g *CapsuleGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawConvexHull(d *DebugDraw, g *ConvexHullGeometry, tf *Transform, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawAabb(d *DebugDraw, aabb Aabb, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawConstraints(d *DebugDraw) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawContactPoint(d *DebugDraw, c *ContactConstraint, p *ManifoldPoint) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawPair(d *DebugDraw, c *Contact, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawJoint(d *DebugDraw, j *Joint) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawRevolute(d *DebugDraw, j *RevoluteJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawCylindrical(d *DebugDraw, j *CylindricalJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawPrismatic(d *DebugDraw, j *PrismaticJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawUniversal(d *DebugDraw, j *UniversalJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawRagdoll(d *DebugDraw, j *RagdollJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawGeneric(d *DebugDraw, j *GenericJoint, anchor1 Vec3, anchor2 Vec3, basisX1 Vec3, basisY1 Vec3, basisZ1 Vec3, basisX2 Vec3, basisY2 Vec3, basisZ2 Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawRotationalLimit(d *DebugDraw, center Vec3, ex Vec3, ey Vec3, needle Vec3, radius float64, min float64, max float64, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawTranslationalLimit(d *DebugDraw, center Vec3, ex Vec3, min float64, max float64, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawTranslationalLimit3D(d *DebugDraw, center Vec3, ex Vec3, ey Vec3, ez Vec3, xlm *TranslationalLimitMotor, ylm *TranslationalLimitMotor, zlm *TranslationalLimitMotor, color Vec3) {
+	// TODO
+	panic("not impl")
+}
+
+func (self *World) drawEllipseOnSphere(d *DebugDraw, center Vec3, normal Vec3, x Vec3, y Vec3, radiansX float64, radiansY float64, radius float64, color Vec3) {
+	// TODO
+	panic("not impl")
+}
 
 // --- public ---
 
-func (w *World) step(timeStep float64) {
+func (w *World) Step(timeStep float64) {
 	if w.timeStep.Dt > 0 {
 		w.timeStep.DtRatio = timeStep / w.timeStep.Dt
 	}
@@ -251,7 +387,178 @@ func (w *World) step(timeStep float64) {
 	w.solveIslands()
 }
 
-// TODO
+func (self *World) AddRigidBody(rigidBody *RigidBody) {
+	if rigidBody.world != nil {
+		panic("A rigid body cannot belong to multiple worlds.")
+	}
+
+	// first, add the rigid body to the world
+	self.rigidBodyList, self.rigidBodyListLast = DoubleList_push(self.rigidBodyList, self.rigidBodyListLast, rigidBody)
+	rigidBody.world = self
+
+	// then add the shapes to the world
+	for s := rigidBody.shapeList; s != nil; s = s.next {
+		self.addShape(s)
+	}
+
+	self.numRigidBodies++
+}
+
+// Removes the rigid body `rigidBody` from the simulation world.
+func (self *World) RemoveRigidBody(rigidBody *RigidBody) {
+	if rigidBody.world != self {
+		panic("The rigid body doesn't belong to the world.")
+	}
+	// first, remove the rigid body from the world
+	self.rigidBodyList, self.rigidBodyListLast = DoubleList_remove(self.rigidBodyList, self.rigidBodyListLast, rigidBody)
+	rigidBody.world = nil
+
+	// then remove the shapes from the world
+	for s := rigidBody.shapeList; s != nil; s = s.next {
+		self.removeShape(s)
+	}
+
+	self.numRigidBodies--
+}
+
+// Adds the joint `joint` to the simulation world.
+func (self *World) AddJoint(joint *Joint) {
+	if joint.world != nil {
+		panic("A joint cannot belong to multiple worlds.")
+	}
+
+	self.jointList, self.jointListLast = DoubleList_push(self.jointList, self.jointListLast, joint)
+	joint.world = self
+	joint.attachLinks()
+	joint.syncAnchors()
+
+	self.numJoints++
+}
+
+// Removes the joint `joint` from the simulation world.
+func (self *World) RemoveJoint(joint *Joint) {
+	if joint.world != self {
+		panic("The joint doesn't belong to the world.")
+	}
+	self.jointList, self.jointListLast = DoubleList_remove(self.jointList, self.jointListLast, joint)
+	joint.world = nil
+	joint.detachLinks()
+
+	self.numJoints--
+}
+
+// Sets the debug draw interface to `debugDraw`. Call `World.debugDraw` to draw the simulation world.
+func (self *World) SetDebugDraw(debugDraw *DebugDraw) {
+	self.debugDraw = debugDraw
+}
+
+// Returns the debug draw interface.
+func (self *World) GetDebugDraw() *DebugDraw {
+	return self.debugDraw
+}
+
+// Draws the simulation world for debugging. Call `World.setDebugDraw` to set the debug draw interface.
+func (self *World) DrawDebug() {
+	// TODO
+	panic("not impl")
+}
+
+// Performs a ray casting. `callback.process` is called for all shapes the ray from `begin` to `end` hits.
+func (self *World) RayCast(begin Vec3, end Vec3, callback IRayCastCallback) {
+	self.rayCastWrapper.begin = begin
+	self.rayCastWrapper.end = end
+	self.rayCastWrapper.callback = callback
+
+	self.broadPhase.RayCast(begin, end, self.rayCastWrapper)
+}
+
+// Performs a convex casting. `callback.process` is called for all shapes the convex geometry `convex` hits. The convex geometry translates by `translation` starting from the beginning transform `begin`.
+func (self *World) ConvexCast(convex IConvexGeometry, begin *Transform, translation Vec3, callback IRayCastCallback) {
+	self.convexCastWrapper.convex = convex
+	self.convexCastWrapper.begin = *begin
+	self.convexCastWrapper.translation = translation
+	self.convexCastWrapper.callback = callback
+
+	self.broadPhase.ConvexCast(convex, begin, translation, self.convexCastWrapper)
+}
+
+// Performs an AABB query. `callback.process` is called for all shapes that their AABB and `aabb` intersect.
+func (self *World) AabbTest(aabb *Aabb, callback IAabbTestCallback) {
+	*self.aabbTestWrapper.aabb = *aabb
+	self.aabbTestWrapper.callback = callback
+
+	self.broadPhase.AabbTest(aabb, self.aabbTestWrapper)
+}
+
+// Returns the list of the rigid bodies added to the world.
+func (self *World) GetRigidBodyList() *RigidBody {
+	return self.rigidBodyList
+}
+
+// Returns the list of the joints added to the world.
+func (self *World) GetJointList() *Joint {
+	return self.jointList
+}
+
+// Returns the broad-phase collision detection algorithm.
+func (self *World) GetBroadPhase() IBroadPhase {
+	return self.broadPhase
+}
+
+// Returns the contact manager.
+func (self *World) GetContactManager() *ContactManager {
+	return self.contactManager
+}
+
+// Returns the number of the rigid bodies added to the world.
+func (self *World) GetNumRigidBodies() int {
+	return self.numRigidBodies
+}
+
+// Returns the number of the joints added to the world.
+func (self *World) GetNumJoints() int {
+	return self.numJoints
+}
+
+// Returns the number of the shapes added to the world.
+func (self *World) GetNumShapes() int {
+	return self.numShapes
+}
+
+// Returns the number of simulation islands.
+func (self *World) GetNumIslands() int {
+	return self.numIslands
+}
+
+// Returns the number of velocity iterations of constraint solvers.
+func (self *World) GetNumVelocityIterations() int {
+	return self.numVelocityIterations
+}
+
+// Sets the number of velocity iterations of constraint solvers to `numVelocityIterations`.
+func (self *World) SetNumVelocityIterations(numVelocityIterations int) {
+	self.numVelocityIterations = numVelocityIterations
+}
+
+// Returns the number of position iterations of constraint solvers.
+func (self *World) GetNumPositionIterations() int {
+	return self.numPositionIterations
+}
+
+// Sets the number of position iterations of constraint solvers to `numPositionIterations`.
+func (self *World) SetNumPositionIterations(numPositionIterations int) {
+	self.numPositionIterations = numPositionIterations
+}
+
+// Returns the gravitational acceleration of the simulation world.
+func (self *World) GetGravity() Vec3 {
+	return self.gravity
+}
+
+// Sets the gravitational acceleration of the simulation world to `gravity`.
+func (self *World) SetGravity(gravity Vec3) {
+	self.gravity = gravity
+}
 
 // ray cast wrapper (broadphase -> world)
 type RayCastWrapper struct { // implements IBroadPhaseProxyCallback
@@ -330,5 +637,3 @@ func (self *AabbTestWrapper) Process(proxy IProxy) { // override
 		self.callback.Process(shape)
 	}
 }
-
-// TODO

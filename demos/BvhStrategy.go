@@ -27,7 +27,7 @@ func (self *BvhStrategy) decideInsertion(currentNode *BvhNode, leaf *BvhNode) in
 	case BvhInsertionStrategy_MINIMIZE_SURFACE_AREA:
 		return self._decideInsertionMinimumSurfaceArea(currentNode, leaf)
 	default:
-		fmt.Errorf("Invalid BVH insertion strategy: %v", self.insertionStrategy)
+		fmt.Printf("Invalid BVH insertion strategy: %v", self.insertionStrategy)
 		return -1
 	}
 }

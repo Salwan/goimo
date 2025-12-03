@@ -137,8 +137,10 @@ func (dm *DemoMain) Update(dt float32) {
 	// DemoMain: loop() runs at 60fps (called from javascript)
 	// BasicDemo (currentDemo): nothing relevant
 	// currentDemo.update(): nothing relevant
+
+	// Hardcode fixed timestep for testing
 	st := 1.0 / 60.0
-	dm.world.step(st) //dm.dt)
+	dm.world.Step(st) //dm.dt)
 }
 
 func (dm *DemoMain) Render(render *renderer.Renderer) {

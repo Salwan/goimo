@@ -3,6 +3,9 @@
 # python reqs: pip3 install google-genai rich
 # dnf reqs: dnf install glow
 
+# Wishlist:
+# - [ ] allows adding an optional string after object name that will be appended as a developer's note with the prompt.
+
 import argparse
 import json
 import shutil

@@ -84,6 +84,24 @@ func NewRigidBody(config *RigidBodyConfig) *RigidBody {
 	return rb
 }
 
+// --- double linked list interface ---
+
+func (c *RigidBody) GetNext() *RigidBody {
+	return c.next
+}
+
+func (c *RigidBody) SetNext(x *RigidBody) {
+	c.next = x
+}
+
+func (c *RigidBody) GetPrev() *RigidBody {
+	return c.prev
+}
+
+func (c *RigidBody) SetPrev(x *RigidBody) {
+	c.prev = x
+}
+
 // --- internal ---
 
 func (rb *RigidBody) integrate(dt float64) {
@@ -722,7 +740,7 @@ func (self *RigidBody) AddShape(shape *Shape) {
 func (self *RigidBody) RemoveShape(shape *Shape) {
 	// first remove the shape from the world
 	if self.world != nil {
-		self.world._removeShape(shape)
+		self.world.removeShape(shape)
 	}
 
 	// then, remove the shape from the linked list so that it will be ignored
@@ -796,16 +814,4 @@ func (self *RigidBody) GetAngularDamping() float64 {
 // Sets the angular damping to `damping`.
 func (self *RigidBody) SetAngularDamping(damping float64) {
 	self.angularDamping = damping
-}
-
-// Returns the previous rigid body in the world.
-// If the previous one does not exist, `null` will be returned.
-func (self *RigidBody) GetPrev() *RigidBody {
-	return self.prev
-}
-
-// Returns the next rigid body in the world.
-// If the next one does not exist, `null` will be returned.
-func (self *RigidBody) GetNext() *RigidBody {
-	return self.next
 }

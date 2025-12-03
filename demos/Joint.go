@@ -83,4 +83,40 @@ func NewJoint(config *JointConfig, _type int) *Joint {
 	return j
 }
 
+// --- double linked list interface ---
+
+func (c *Joint) GetNext() *Joint {
+	return c.next
+}
+
+func (c *Joint) SetNext(x *Joint) {
+	c.next = x
+}
+
+func (c *Joint) GetPrev() *Joint {
+	return c.prev
+}
+
+func (c *Joint) SetPrev(x *Joint) {
+	c.prev = x
+}
+
+// --- internal ---
+
+// !! don't forget to call this from constraint solver !!
+func (self *Joint) syncAnchors() {
+	// TODO
+	panic("not impl")
+}
+
+func (self *Joint) attachLinks() {
+	// TODO
+	panic("not impl")
+}
+
+func (self *Joint) detachLinks() {
+	// TODO
+	panic("not impl")
+}
+
 // TODO
