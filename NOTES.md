@@ -48,3 +48,29 @@ if a > b && a > c {
     doC()
 }
 ```
+
+### Macro List Foreach
+
+Haxe's macro `M.list_foreach` is designed so that if the current item is removed within the loop it won't cause an issue as the next item is fetched before the body of the loop not after. To match this behavior use this pattern:
+
+```go
+for c := self.somethingList; c != nil; {
+    next := c.next
+
+    // body of loop that could delete c (nullfying next item)
+
+    c = next
+}
+```
+
+### do-while(false)+break
+
+Haxe runs a block of code inside a `do {} while(false);` and uses `break` to jump out of the block.
+
+Go can use labels but I'd rather match Haxe's approach for now:
+
+```go
+for range 1 {
+    // can break out anytime
+}
+```
