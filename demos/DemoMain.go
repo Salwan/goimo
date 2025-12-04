@@ -31,6 +31,7 @@ type DemoMain struct {
 	world       *World
 	dt          float64
 	demoBoxes   []*DemoBox
+	paused      bool
 }
 
 func NewDemoMain() *DemoMain {
@@ -81,6 +82,9 @@ func NewDemoMain() *DemoMain {
 	// TEMP: orbit camera to see what's going on
 	camera.NewOrbitControl(dm.cam)
 
+	// Start paused
+	dm.paused = true
+
 	return &dm
 }
 
@@ -102,6 +106,7 @@ func (dm *DemoMain) initBasicDemo() {
 
 	w, h, n := 2, 2, 5
 	sp, size := 0.61, 0.3
+
 	for i := range n {
 		for j := -w; j <= w+1; j++ {
 			for k := -h; k <= h+1; k++ {
@@ -127,6 +132,14 @@ func (dm *DemoMain) Update(dt float32) {
 	if dm.keyState.Pressed(window.KeyQ) {
 		dm.application.Exit()
 	}
+	if dm.keyState.Pressed(window.KeyP) {
+		dm.paused = !dm.paused
+		time.Sleep(350 * time.Millisecond)
+	}
+	step := dm.keyState.Pressed(window.KeySpace)
+	if step {
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	// synchronize boxes
 	for _, b := range dm.demoBoxes {
@@ -140,6 +153,9 @@ func (dm *DemoMain) Update(dt float32) {
 
 	// Hardcode fixed timestep for testing
 	st := 1.0 / 60.0
+	if dm.paused && !step {
+		st = 0.0
+	}
 	dm.world.Step(st) //dm.dt)
 }
 
