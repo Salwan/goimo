@@ -226,8 +226,12 @@ func (self *RigidBody) shapeModified() {
 }
 
 func (rb *RigidBody) syncShapes() {
-	for s := rb.shapeList; s != nil; s = s.next {
+	for s := rb.shapeList; s != nil; {
+		next := s.next
+
 		s.sync(&rb.pTransform, &rb.transform)
+
+		s = next
 	}
 }
 
@@ -247,7 +251,9 @@ func (self *RigidBody) _updateMass() {
 	var totalInertia Mat3
 	totalMass := 0.0
 
-	for s := self.shapeList; s != nil; s = s.next {
+	for s := self.shapeList; s != nil; {
+		next := s.next
+
 		g := s.geom
 		g.UpdateMass()
 
@@ -269,6 +275,8 @@ func (self *RigidBody) _updateMass() {
 		// add mass data
 		totalMass += mass
 		MathUtil.Mat3_add(&totalInertia, &totalInertia, &inertia)
+
+		s = next
 	}
 
 	self.mass = totalMass

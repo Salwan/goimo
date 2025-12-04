@@ -90,45 +90,49 @@ func (self *ContactManager) _destroyOutdatedContacts() {
 	// whether the broadphase returns only new overlapping pairs
 	incremental := self.broadPhase.IsIncremental()
 
-	for c := self.contactList; c != nil; c = c.next {
-		if c.latest {
-			// the contact is overlapping, make it old for the next step
-			c.latest = false
-			c.shouldBeSkipped = false
-			continue
-		}
-		if !incremental {
-			// the pair is separated, because the broad-phase algorithm collects
-			// all the overlapping pairs and they are marked as latest
-			self.destroyContact(c)
-			continue
-		}
+	for c := self.contactList; c != nil; {
+		next := c.next
+		for range 1 {
+			if c.latest {
+				// the contact is overlapping, make it old for the next step
+				c.latest = false
+				c.shouldBeSkipped = false
+				break
+			}
+			if !incremental {
+				// the pair is separated, because the broad-phase algorithm collects
+				// all the overlapping pairs and they are marked as latest
+				self.destroyContact(c)
+				break
+			}
 
-		s1 := c.s1
-		s2 := c.s2
-		r1 := s1.rigidBody
-		r2 := s2.rigidBody
+			s1 := c.s1
+			s2 := c.s2
+			r1 := s1.rigidBody
+			r2 := s2.rigidBody
 
-		active1 := !r1.sleeping && r1._type != RigidBodyType_STATIC
-		active2 := !r2.sleeping && r2._type != RigidBodyType_STATIC
-		if !active1 && !active2 {
-			// skip the pair if both rigid bodies are inactive
-			c.shouldBeSkipped = true
-			continue
+			active1 := !r1.sleeping && r1._type != RigidBodyType_STATIC
+			active2 := !r2.sleeping && r2._type != RigidBodyType_STATIC
+			if !active1 && !active2 {
+				// skip the pair if both rigid bodies are inactive
+				c.shouldBeSkipped = true
+				break
+			}
+
+			aabb1 := s1.aabb
+			aabb2 := s2.aabb
+			if !self.broadPhase.IsOverlapping(s1.proxy, s2.proxy) || !self._shouldCollide(s1, s2) {
+				// the proxy pair is separated or shouldn't collide
+				self.destroyContact(c)
+				break
+			}
+
+			// the proxies are overlapping, but AABBs might be separated
+			aabbOverlapping := MathUtil.Aabb_overlap(&aabb1.Min, &aabb1.Max, &aabb2.Min, &aabb2.Max)
+			// needs narrow-phase collision detection if AABBs are overlapping
+			c.shouldBeSkipped = !aabbOverlapping
 		}
-
-		aabb1 := s1.aabb
-		aabb2 := s2.aabb
-		if !self.broadPhase.IsOverlapping(s1.proxy, s2.proxy) || !self._shouldCollide(s1, s2) {
-			// the proxy pair is separated or shouldn't collide
-			self.destroyContact(c)
-			continue
-		}
-
-		// the proxies are overlapping, but AABBs might be separated
-		aabbOverlapping := MathUtil.Aabb_overlap(&aabb1.Min, &aabb1.Max, &aabb2.Min, &aabb2.Max)
-		// needs narrow-phase collision detection if AABBs are overlapping
-		c.shouldBeSkipped = !aabbOverlapping
+		c = next
 	}
 }
 
@@ -182,18 +186,22 @@ func (cm *ContactManager) updateContacts() {
 
 // send postSolve events
 func (self *ContactManager) postSolve() {
-	for c := self.contactList; c != nil; c = c.next {
+	for c := self.contactList; c != nil; {
+		next := c.next
 		if c.touching {
 			c.postSolve()
 		}
+		c = next
 	}
 }
 
 func (self *ContactManager) updateManifolds() {
-	for c := self.contactList; c != nil; c = c.next {
+	for c := self.contactList; c != nil; {
+		next := c.next
 		if !c.shouldBeSkipped {
 			c.updateManifold()
 		}
+		c = next
 	}
 }
 
@@ -218,5 +226,3 @@ func (self *ContactManager) GetNumContacts() int {
 func (self *ContactManager) GetContactList() *Contact {
 	return self.contactList
 }
-
-// TODO

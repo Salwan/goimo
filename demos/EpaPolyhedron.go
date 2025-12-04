@@ -79,7 +79,9 @@ func (self *EpaPolyhedron) _dumpHoleEdge(first *EpaVertex) {
 }
 
 func (self *EpaPolyhedron) _validate() bool {
-	for t := self.triangleList; t != nil; t = t.next {
+	for t := self.triangleList; t != nil; {
+		next := t.next
+
 		for i := range 3 {
 			t.vertices[i].tmpEdgeLoopOuterTriangle = nil
 			t.vertices[i].tmpEdgeLoopNext = nil
@@ -94,6 +96,8 @@ func (self *EpaPolyhedron) _validate() bool {
 				//throw M.error("!?")
 			}
 		}
+
+		t = next
 	}
 	return true
 }
@@ -221,11 +225,15 @@ func (self *EpaPolyhedron) init(v1, v2, v3, v4 *EpaVertex) bool {
 func (self *EpaPolyhedron) getBestTriangle() *EpaTriangle {
 	mind := MathUtil.POSITIVE_INFINITY
 	var minf *EpaTriangle
-	for f := self.triangleList; f != nil; f = f.next {
+	for f := self.triangleList; f != nil; {
+		next := f.next
+
 		if f.distanceSq < mind {
 			mind = f.distanceSq
 			minf = f
 		}
+
+		f = next
 	}
 	return minf
 }
@@ -304,12 +312,16 @@ func (self *EpaPolyhedron) dumpAsObjModel() {
 		var vs string
 		var fs string
 		c := 0
-		for f := self.triangleList; f != nil; f = f.next {
+		for f := self.triangleList; f != nil; {
+			next := f.next
+
 			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[0].v.x, f.vertices[0].v.y, f.vertices[0].v.z)
 			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[1].v.x, f.vertices[1].v.y, f.vertices[1].v.z)
 			vs += fmt.Sprintf("v %v %v %v\n", f.vertices[2].v.x, f.vertices[2].v.y, f.vertices[2].v.z)
 			fs += fmt.Sprintf("f %d %d %d\n", c+1, c+2, c+3)
 			c += 3
+
+			f = next
 		}
 		debug.GjkLog("\n\n#EPAPolyhedron\n%v\n%v\n\n", vs, fs)
 	}
