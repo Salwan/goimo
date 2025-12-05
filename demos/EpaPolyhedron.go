@@ -225,15 +225,11 @@ func (self *EpaPolyhedron) init(v1, v2, v3, v4 *EpaVertex) bool {
 func (self *EpaPolyhedron) getBestTriangle() *EpaTriangle {
 	mind := MathUtil.POSITIVE_INFINITY
 	var minf *EpaTriangle
-	for f := self.triangleList; f != nil; {
-		next := f.next
-
+	for f := self.triangleList; f != nil; f = f.next {
 		if f.distanceSq < mind {
 			mind = f.distanceSq
 			minf = f
 		}
-
-		f = next
 	}
 	return minf
 }

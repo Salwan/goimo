@@ -10,6 +10,8 @@ type IProxy interface {
 	GetAabbMin() *Vec3
 	GetAabbMax() *Vec3
 	GetUserData() any
+	SetUserData(userData any)
+	SetAabb(aabb *Aabb)
 }
 
 type Proxy struct {
@@ -52,13 +54,6 @@ func (self *Proxy) SetPrev(x IProxy) {
 	self.prev = x
 }
 
-// --- internal ---
-
-func (self *Proxy) setAabb(aabb Aabb) {
-	self.aabbMin = aabb.Min
-	self.aabbMax = aabb.Max
-}
-
 // --- public ---
 
 // Returns the unique if of the proxy
@@ -76,6 +71,15 @@ func (self *Proxy) GetAabbMax() *Vec3 {
 
 func (self *Proxy) GetUserData() any {
 	return self.userData
+}
+
+func (self *Proxy) SetUserData(userData any) {
+	self.userData = userData
+}
+
+func (self *Proxy) SetAabb(aabb *Aabb) {
+	self.aabbMin = aabb.Min
+	self.aabbMax = aabb.Max
 }
 
 // Returns the fat AABB of the proxy.

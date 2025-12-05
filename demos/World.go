@@ -105,14 +105,18 @@ func (w *World) solveIslands() {
 	w.numIslands = 0
 	w.island.SetGravity(&w.gravity)
 	w.numSolversInIslands = 0
-	for b := w.rigidBodyList; b != nil; b = b.next {
+	for b := w.rigidBodyList; b != nil; {
+		next := b.next
+
 		if b.addedToIsland || b.sleeping || b._type == RigidBodyType_STATIC {
 			// never be the base of an island
+			b = next
 			continue
 		}
 		if b.isAlone() {
 			w.island.StepSingleRigidBody(*w.timeStep, b)
 			w.numIslands++
+			b = next
 			continue
 		}
 
@@ -121,6 +125,8 @@ func (w *World) solveIslands() {
 		w.island.Step(*w.timeStep, w.numVelocityIterations, w.numPositionIterations)
 		w.island.clear()
 		w.numIslands++
+
+		b = next
 	}
 
 	w.contactManager.postSolve()
@@ -128,10 +134,12 @@ func (w *World) solveIslands() {
 	// clear island flags
 	// clear forces and torques
 	// (OimoPhysics code loops two times for this)
-	for b := w.rigidBodyList; b != nil; b = b.next {
+	for b := w.rigidBodyList; b != nil; {
+		next := b.next
 		b.addedToIsland = false
 		b.force.Zero()
 		b.torque.Zero()
+		b = next
 	}
 
 	for w.numSolversInIslands > 0 {
@@ -162,7 +170,9 @@ func (w *World) buildIsland(base *RigidBody) {
 		}
 
 		// searching contacts
-		for cl := rb.contactLinkList; cl != nil; cl = cl.next {
+		for cl := rb.contactLinkList; cl != nil; {
+			next := cl.next
+
 			// ignore if not touching
 			cc := cl.contact.contactConstraint
 			ccs := cl.contact.contactConstraint.solver
@@ -186,10 +196,14 @@ func (w *World) buildIsland(base *RigidBody) {
 					stackCount++
 				}
 			}
+
+			cl = next
 		}
 
 		// searching joints
-		for jl := rb.jointLinkList; jl != nil; jl = jl.next {
+		for jl := rb.jointLinkList; jl != nil; {
+			next := jl.next
+
 			j := jl.joint
 			js := j.solver
 			if !js.(*ConstraintSolver).addedToIsland {
@@ -212,6 +226,8 @@ func (w *World) buildIsland(base *RigidBody) {
 					stackCount++
 				}
 			}
+
+			jl = next
 		}
 	}
 }
@@ -230,12 +246,14 @@ func (self *World) removeShape(shape *Shape) {
 	shape.id = -1
 
 	// destroy linked contacts
-	for cl := shape.rigidBody.contactLinkList; cl != nil; cl = cl.next {
+	for cl := shape.rigidBody.contactLinkList; cl != nil; {
+		next := cl.next
 		c := cl.contact
 		if c.s1 == shape || c.s2 == shape {
 			cl.other.WakeUp()
 			self.contactManager.destroyContact(c)
 		}
+		cl = next
 	}
 
 	self.numShapes--
@@ -397,8 +415,10 @@ func (self *World) AddRigidBody(rigidBody *RigidBody) {
 	rigidBody.world = self
 
 	// then add the shapes to the world
-	for s := rigidBody.shapeList; s != nil; s = s.next {
+	for s := rigidBody.shapeList; s != nil; {
+		next := s.next
 		self.addShape(s)
+		s = next
 	}
 
 	self.numRigidBodies++
@@ -414,8 +434,10 @@ func (self *World) RemoveRigidBody(rigidBody *RigidBody) {
 	rigidBody.world = nil
 
 	// then remove the shapes from the world
-	for s := rigidBody.shapeList; s != nil; s = s.next {
+	for s := rigidBody.shapeList; s != nil; {
+		next := s.next
 		self.removeShape(s)
+		s = next
 	}
 
 	self.numRigidBodies--

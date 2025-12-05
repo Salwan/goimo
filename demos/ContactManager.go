@@ -26,7 +26,9 @@ func NewContactManager(broadPhase IBroadPhase) *ContactManager {
 // --- private ---
 
 func (cm *ContactManager) _createContacts() {
-	for pp := cm.broadPhase.GetProxyPairList(); pp != nil; pp = pp.next {
+	for pp := cm.broadPhase.GetProxyPairList(); pp != nil; {
+		next := pp.next
+
 		var s1 *Shape
 		var s2 *Shape
 		if debug.Debug && pp.p1.GetID() == pp.p2.GetID() {
@@ -43,6 +45,7 @@ func (cm *ContactManager) _createContacts() {
 
 		// collision filtering
 		if !cm._shouldCollide(s1, s2) {
+			pp = next
 			continue
 		}
 
@@ -83,6 +86,8 @@ func (cm *ContactManager) _createContacts() {
 			c.attach(s1, s2, cm.collisionMatrix.GetDetector(s1.geom.GetType(), s2.geom.GetType()))
 			cm.numContacts++
 		}
+
+		pp = next
 	}
 }
 

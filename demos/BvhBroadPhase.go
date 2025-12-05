@@ -44,7 +44,7 @@ func (self *BvhBroadPhase) _addToMovedProxy(bvhProxy *BvhProxy) {
 // displacement can be nil
 func (self *BvhBroadPhase) _updateProxy(p *BvhProxy, aabb *Aabb, displacement *Vec3) {
 	// set tight AABB
-	p.setAabb(*aabb)
+	p.SetAabb(aabb)
 
 	// fatten the AABB
 	padding := Settings.BvhProxyPadding
