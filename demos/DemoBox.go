@@ -88,6 +88,8 @@ func convVec3ToVector3(v *Vec3) math32.Vector3 {
 // Synchronizes box with physical rigidbody
 func (db *DemoBox) sync() {
 	p := convVec3ToVector3(&db.rb.transform.position)
-	//r := db.rb.transform.rotation
+	var r Quat
+	r.fromMat3(&db.rb.transform.rotation)
 	db.SetPositionVec(&p)
+	db.SetRotationQuat(&math32.Quaternion{X: float32(r.x), Y: float32(r.y), Z: float32(r.z), W: float32(r.w)})
 }
