@@ -73,7 +73,7 @@ func NewDemoMain() *DemoMain {
 	dm.application.Subscribe(window.OnWindowSize, onResize)
 	onResize("", nil)
 
-	dm.world = NewWorld(BroadPhaseType_BVH, nil)
+	dm.world = NewWorld(BroadPhaseType_BRUTE_FORCE, nil)
 
 	// Init demos
 	dm.initBaseDemo()
@@ -107,14 +107,21 @@ func (dm *DemoMain) initBasicDemo() {
 	w, h, n := 2, 2, 5
 	sp, size := 0.61, 0.3
 
+	box_limit := 1
+	counter := 0
+OuterLoop:
 	for i := range n {
 		for j := -w; j <= w+1; j++ {
 			for k := -h; k <= h+1; k++ {
-				pos := Vec3{float64(j) * sp, size + float64(i)*size*3, float64(k) * sp}
+				pos := Vec3{float64(j) * sp, size + float64(n-i)*size*3, float64(k) * sp}
 				box, gbox := OimoUtil.AddBox(dm.world, &pos, &Vec3{size, size, size}, false)
-				box.SetAngularVelocity(MathUtil.RandVec3In(-0.05, 0.05))
+				box.SetAngularVelocity(MathUtil.RandVec3In(-0.5, 0.5))
 				dm.root.Add(gbox)
 				dm.demoBoxes = append(dm.demoBoxes, gbox)
+				counter++
+				if counter >= box_limit {
+					break OuterLoop
+				}
 			}
 		}
 	}
@@ -156,7 +163,9 @@ func (dm *DemoMain) Update(dt float32) {
 	if dm.paused && !step {
 		st = 0.0
 	}
-	dm.world.Step(st) //dm.dt)
+	if st > 0.0 {
+		dm.world.Step(st) //dm.dt)
+	}
 }
 
 func (dm *DemoMain) Render(render *renderer.Renderer) {
