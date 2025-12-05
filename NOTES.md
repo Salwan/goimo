@@ -51,13 +51,14 @@ if a > b && a > c {
 
 ### Macro List Foreach
 
-Haxe's macro `M.list_foreach` is designed so that if the current item is removed within the loop it won't cause an issue as the next item is fetched before the body of the loop not after. To match this behavior use this pattern:
+Haxe's macro `M.list_foreach` is designed so that if the current item is removed within the loop it won't cause an issue as the next item is fetched before the body of the loop not after. To match this behavior use this pattern AND BEWARE OF continue, break:
 
 ```go
 for c := self.somethingList; c != nil; {
     next := c.next
 
     // body of loop that could delete c (nullfying next item)
+    // CRITICAL! any continue or break, you need to set c = next before otherwise you got an infinite loop
 
     c = next
 }
