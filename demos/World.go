@@ -143,12 +143,9 @@ func (w *World) solveIslands() {
 	}
 
 	for w.numSolversInIslands > 0 {
-		// Use Go clearing, but this is kept for reference
-		// w.numSolversInIslands--
-		// w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
-		// w.solversInIslands[w.numSolversInIslands] = nil
-
-		w.solversInIslands = w.solversInIslands[:0]
+		w.numSolversInIslands--
+		w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
+		w.solversInIslands[w.numSolversInIslands] = nil
 	}
 }
 
