@@ -87,7 +87,6 @@ func (bp *BroadPhase) _pickAndPushProxyPair(p1, p2 IProxy) {
 func (self *BroadPhase) _poolProxyPairs() {
 	p := self.proxyPairList
 	if p != nil {
-		last_item := p
 		for {
 			p.p1 = nil
 			p.p2 = nil
@@ -95,10 +94,8 @@ func (self *BroadPhase) _poolProxyPairs() {
 			if p == nil {
 				break
 			}
-			last_item = p
 		}
-		// FIX: possible object leak here, setting proxyPairList.next to list head and list has more than one item will leak. self.proxyPairPool should be set to last item not first.
-		last_item.next = self.proxyPairPool
+		self.proxyPairList.next = self.proxyPairPool
 		self.proxyPairPool = self.proxyPairList
 		self.proxyPairList = nil
 	}
