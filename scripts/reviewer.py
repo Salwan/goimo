@@ -3,9 +3,6 @@
 # python reqs: pip3 install requests rich
 # dnf reqs: dnf install glow
 
-# Wishlist:
-# - [ ] allows adding an optional string after object name that will be appended as a developer's note with the prompt.
-
 import argparse
 import json
 import shutil
@@ -116,6 +113,12 @@ def main():
         help="Object name to review, searches for both Go (in current path) and Haxe (in configured OimoPhysics path)"
     )
     parser.add_argument(
+        "note",
+        nargs='?',
+        default="",
+        help="Optional text to append to prompt to guide the review when needed, appended to: \"Note that: ...\""
+    )
+    parser.add_argument(
         "-m", "--model",
         default=DEFAULT_MODEL,
         help="Select model from preset list"
@@ -123,6 +126,10 @@ def main():
     args = parser.parse_args()
 
     selected_model=int(args.model)
+    note_that=""
+
+    if len(args.note) > 0:
+        note_that="Note that for this review: " + str(args.note)
 
     if selected_model < 0 or selected_model >= len(OPENROUTER_MODELS):
         print(f"Model index {selected_model} invalid. Available models:\n")
@@ -157,6 +164,8 @@ def main():
 This project is to port OimoPhysics, a 3D physics engine written in Haxe, to Go.
 
 You are an expert code reviewer.
+
+{note_that}
 
 Note that these are not issues:
 * Go range statement directly used with integer `for i := range <integer>{{}}` or in the form `for range <integer> {{}}`
