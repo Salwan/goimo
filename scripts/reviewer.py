@@ -3,6 +3,9 @@
 # python reqs: pip3 install requests rich
 # dnf reqs: dnf install glow
 
+# Wishlist:
+# [ ] add new arg (maybe: `-add BroadPhase,ArrayList`) to allow adding dependency modules to help with evaluation
+
 import argparse
 import json
 import shutil
@@ -17,11 +20,10 @@ OIMO_PHYSICS_PATH = os.path.expanduser("~/dev/OimoPhysics")
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODELS = [
-    "google/gemma-3-27b-it:free",           # 27B, 1M context
     "tngtech/deepseek-r1t2-chimera:free",   # 670B R1+Coder
-    "kwaipilot/kat-coder-pro:free",         # agentic-coding 256K context
-    "qwen/qwen3-coder:free",                # 480B (errors out)
-    #"openai/gpt-oss-120b:free",             # 120B, limited length though
+    "google/gemma-3-27b-it:free",           # 27B, worse than DS but may catch strays
+    "qwen/qwen3-coder:free",                # 480B, not as good as DS/Gemma
+    #"openai/gpt-oss-120b:free",             # 120B, limited length, maybe for free tier specifically
 ]
 DEFAULT_MODEL=0
 
