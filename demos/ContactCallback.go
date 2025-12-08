@@ -27,10 +27,18 @@ func NewContactCallback() *ContactCallback {
 	return &ContactCallback{}
 }
 
-func (cc *ContactCallback) beginContact(c *Contact) {}
+func (cc *ContactCallback) beginContact(c *Contact) {
+	panic("abstract call")
+}
 
-func (cc *ContactCallback) preSolve(c *Contact) {}
+func (cc *ContactCallback) preSolve(c *Contact) {
+	panic("abstract call")
+}
 
-func (cc *ContactCallback) postSolve(c *Contact) {}
+func (cc *ContactCallback) postSolve(c *Contact) {
+	panic("abstract call")
+}
 
-func (cc *ContactCallback) endContact(c *Contact) {}
+func (cc *ContactCallback) endContact(c *Contact) {
+	panic("abstract call")
+}

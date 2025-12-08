@@ -7,7 +7,7 @@ package demos
 type PositionCorrectionAlgorithm int
 
 const (
-	_BAUMGARTE PositionCorrectionAlgorithm = iota
-	_SPLIT_IMPULSE
-	_NGS
+	PositionCorrectionAlgorithm_BAUMGARTE PositionCorrectionAlgorithm = iota
+	PositionCorrectionAlgorithm_SPLIT_IMPULSE
+	PositionCorrectionAlgorithm_NGS
 )

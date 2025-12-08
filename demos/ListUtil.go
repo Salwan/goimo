@@ -3,6 +3,7 @@ package demos
 ////////////////////////////////// ListUtils
 // (?)
 // Utilities to do single and double linked list on Oimo types via next and prev pointers.
+// WARNING: This must only be used with pointer types, it will not work for struct values. Mainly because of the `zero` value comparison
 
 // Current Go has hard limits on generic constraints:
 // - generics cannot describe properties in any way, only methods via interface, (proposal: https://github.com/golang/go/issues/51259)
@@ -16,7 +17,7 @@ type ISingleLinkNode[N any] interface {
 
 //////////////////////////////////////// Single List
 
-// add to front: head is *N (so if N is *MyNode, head is **MyNode). Returns new head to be set.
+// add to front: head is N, returns new head to be set
 func SingleList_addFirst[N interface {
 	ISingleLinkNode[N]
 	comparable
@@ -41,11 +42,9 @@ func SingleList_pick[N interface {
 	if head == zero {
 		head = creator()
 	}
-	new_head = head
-	n := head
-	new_head = n.GetNext()
-	n.SetNext(zero)
-	new_elem = n
+	new_elem = head
+	new_head = head.GetNext()
+	new_elem.SetNext(zero)
 	return
 }
 

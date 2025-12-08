@@ -144,7 +144,7 @@ func (w *World) solveIslands() {
 
 	for w.numSolversInIslands > 0 {
 		w.numSolversInIslands--
-		w.solversInIslands[w.numSolversInIslands].(*ConstraintSolver).addedToIsland = false
+		w.solversInIslands[w.numSolversInIslands].SetAddedToIsland(false)
 		w.solversInIslands[w.numSolversInIslands] = nil
 	}
 }
@@ -173,7 +173,7 @@ func (w *World) buildIsland(base *RigidBody) {
 			// ignore if not touching
 			cc := cl.contact.contactConstraint
 			ccs := cl.contact.contactConstraint.solver
-			if cc.isTouching() && !ccs.(*ConstraintSolver).addedToIsland {
+			if cc.IsTouching() && !ccs.GetAddedToIsland() {
 
 				// add to constraint array (to clear island flag later)
 				if len(w.solversInIslands) == w.numSolversInIslands {
@@ -203,7 +203,7 @@ func (w *World) buildIsland(base *RigidBody) {
 
 			j := jl.joint
 			js := j.solver
-			if !js.(*ConstraintSolver).addedToIsland {
+			if !js.GetAddedToIsland() {
 
 				// add to constraint array (to clear island flag later)
 				if len(w.solversInIslands) == w.numSolversInIslands {

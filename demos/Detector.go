@@ -43,12 +43,12 @@ func (d *Detector) addPoint(result *DetectorResult, pos1, pos2 Vec3, depth float
 }
 
 func (d *Detector) detectImpl(result *DetectorResult, geom1, geom2 IGeometry, tf1, tf2 *Transform, cachedData *CachedDetectorData) {
-	// override this
+	panic("abstract call")
 }
 
 // --- public ---
 
-func (d *Detector) Detect(result *DetectorResult, geom1, geom2 IGeometry, transform1, transform2 *Transform, cachedData *CachedDetectorData) {
+func (d *Detector) Detect(result *DetectorResult, geom1, geom2 IGeometry, transform1, transform2 *Transform, cachedData *CachedDetectorData) { // override
 	result.Clear()
 	if d.swapped {
 		d.detectImpl(result, geom2, geom1, transform2, transform1, cachedData)

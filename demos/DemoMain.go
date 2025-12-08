@@ -107,7 +107,7 @@ func (dm *DemoMain) initBasicDemo() {
 	w, h, n := 2, 2, 5
 	sp, size := 0.61, 0.3
 
-	box_limit := 1
+	box_limit := 999
 	counter := 0
 OuterLoop:
 	for i := range n {

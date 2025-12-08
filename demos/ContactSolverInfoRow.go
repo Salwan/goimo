@@ -35,4 +35,10 @@ func NewContactSolverInfoRow() *ContactSolverInfoRow {
 	}
 }
 
-// TODO
+func (self *ContactSolverInfoRow) Clear() {
+	self.jacobianN.Clear()
+	self.jacobianT.Clear()
+	self.jacobianB.Clear()
+	self.rhs, self.cfm, self.friction = 0.0, 0.0, 0.0
+	self.impulse = nil
+}

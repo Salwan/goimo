@@ -1,6 +1,6 @@
 package demos
 
-// /////////////////////////////////////// ConstraintSolverInfo
+// /////////////////////////////////////// ContactSolverInfo
 // (oimo/dynamics/constraint/info/contact/ContactSolverInfo.go)
 // Internal class.
 type ContactSolverInfo struct {
@@ -8,12 +8,15 @@ type ContactSolverInfo struct {
 	b2 *RigidBody
 
 	numRows int
-	rows    []ContactSolverInfoRow
+	rows    []*ContactSolverInfoRow
 }
 
 func NewContactSolverInfo() *ContactSolverInfo {
 	csi := &ContactSolverInfo{
-		rows: make([]ContactSolverInfoRow, Settings.MaxManifoldPoints),
+		rows: make([]*ContactSolverInfoRow, Settings.MaxManifoldPoints),
+	}
+	for i := range len(csi.rows) {
+		csi.rows[i] = NewContactSolverInfoRow()
 	}
 	return csi
 }

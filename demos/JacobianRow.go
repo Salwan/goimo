@@ -22,11 +22,27 @@ func NewJacobianRow() *JacobianRow {
 	return &JacobianRow{}
 }
 
-func (j *JacobianRow) clear() {
+func (j *JacobianRow) Clear() {
 	j.lin1.Zero()
 	j.lin2.Zero()
 	j.ang1.Zero()
 	j.ang2.Zero()
 }
 
-// TODO
+func (self *JacobianRow) _updateSparsity() {
+	self.flag = 0
+	if !self.lin1.IsZero() || !self.lin2.IsZero() {
+		self.flag |= BIT_LINEAR_SET
+	}
+	if !self.ang1.IsZero() || !self.ang2.IsZero() {
+		self.flag |= BIT_ANGULAR_SET
+	}
+}
+
+func (self *JacobianRow) IsLinearSet() bool {
+	return self.flag&BIT_LINEAR_SET != 0
+}
+
+func (self *JacobianRow) IsAngularSet() bool {
+	return self.flag&BIT_ANGULAR_SET != 0
+}

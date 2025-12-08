@@ -24,8 +24,7 @@ func NewBoxBoxDetector() *BoxBoxDetector {
 	}
 }
 
-// override
-func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeometry, tf1, tf2 *Transform, cachedData *CachedDetectorData) {
+func (bbd *BoxBoxDetector) detectImpl(result *DetectorResult, geom1, geom2 IGeometry, tf1, tf2 *Transform, cachedData *CachedDetectorData) { // override
 	b1 := geom1.(*BoxGeometry)
 	b2 := geom2.(*BoxGeometry)
 
@@ -607,6 +606,17 @@ func _mix3(dst *Vec3, v1, v2, v3 Vec3, sign1, sign2, sign3 int) {
 		dst.SubEq(v3)
 	default:
 		panic(fmt.Errorf("invalid sign: (%d %d %d)", sign1, sign2, sign3))
+	}
+}
+
+// --- public ---
+
+func (self *BoxBoxDetector) Detect(result *DetectorResult, geom1, geom2 IGeometry, transform1, transform2 *Transform, cachedData *CachedDetectorData) { // override
+	result.Clear()
+	if self.swapped {
+		self.detectImpl(result, geom2, geom1, transform2, transform1, cachedData)
+	} else {
+		self.detectImpl(result, geom1, geom2, transform1, transform2, cachedData)
 	}
 }
 

@@ -37,7 +37,7 @@ func NewJointSolverInfoRow() *JointSolverInfoRow {
 }
 
 func (j *JointSolverInfoRow) Clear() {
-	j.jacobian.clear()
+	j.jacobian.Clear()
 	j.rhs, j.cfm = 0, 0
 	j.minImpulse, j.maxImpulse, j.motorSpeed, j.motorMaxImpulse = 0, 0, 0, 0
 	j.impulse = nil

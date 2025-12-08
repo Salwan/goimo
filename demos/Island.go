@@ -123,14 +123,14 @@ func (island *Island) AddConstraintSolver(solver IConstraintSolver, positionCorr
 	if island.numSolvers == len(island.solvers) {
 		island.solvers = Array_expand(island.solvers)
 	}
-	solver.(*ConstraintSolver).addedToIsland = true
+	solver.SetAddedToIsland(true)
 	island.solvers[island.numSolvers] = solver
 	island.numSolvers++
 
-	if positionCorrection == _SPLIT_IMPULSE {
+	if positionCorrection == PositionCorrectionAlgorithm_SPLIT_IMPULSE {
 		island._addConstraintSolverSI(solver)
 	}
-	if positionCorrection == _NGS {
+	if positionCorrection == PositionCorrectionAlgorithm_NGS {
 		island._addConstraintSolverNgs(solver)
 	}
 }
@@ -201,20 +201,20 @@ func (island *Island) Step(timeStep TimeStep, numVelocityIterations int, numPosi
 
 	// solve velocity
 	for i := range island.numSolvers {
-		island.solvers[i].preSolveVelocity(timeStep)
+		island.solvers[i].PreSolveVelocity(timeStep)
 	}
 	for i := range island.numSolvers {
-		island.solvers[i].warmStart(timeStep)
+		island.solvers[i].WarmStart(timeStep)
 	}
 	for range numVelocityIterations {
 		for i := range island.numSolvers {
-			island.solvers[i].solveVelocity()
+			island.solvers[i].SolveVelocity()
 		}
 	}
 
 	// post-solve (velocity)
 	for i := range island.numSolvers {
-		island.solvers[i].postSolveVelocity(timeStep)
+		island.solvers[i].PostSolveVelocity(timeStep)
 	}
 
 	// integrate
@@ -224,11 +224,11 @@ func (island *Island) Step(timeStep TimeStep, numVelocityIterations int, numPosi
 
 	// solve split impulse
 	for i := range island.numSolversSi {
-		island.solversSi[i].preSolvePosition(timeStep)
+		island.solversSi[i].PreSolvePosition(timeStep)
 	}
 	for range numPositionIterations {
 		for i := range island.numSolversSi {
-			island.solversSi[i].solvePositionSplitImpulse()
+			island.solversSi[i].SolvePositionSplitImpulse()
 		}
 	}
 
@@ -239,17 +239,17 @@ func (island *Island) Step(timeStep TimeStep, numVelocityIterations int, numPosi
 
 	// solve nonlinear Gauss-Seidel
 	for i := range island.numSolversNgs {
-		island.solversNgs[i].preSolvePosition(timeStep)
+		island.solversNgs[i].PreSolvePosition(timeStep)
 	}
 	for range numPositionIterations {
 		for i := range island.numSolversNgs {
-			island.solversNgs[i].solvePositionNgs(timeStep)
+			island.solversNgs[i].SolvePositionNgs(timeStep)
 		}
 	}
 
 	// post-solve (some constraints may be removed)
 	for i := range island.numSolvers {
-		island.solvers[i].postSolve()
+		island.solvers[i].PostSolve()
 	}
 
 	// synchronize shapes
