@@ -12,6 +12,7 @@ import shutil
 import shlex
 import subprocess
 import os
+import sys
 import requests
 
 SETTINGS_FILENAME = os.path.expanduser("~/.OimoPhysics.reviewer")
@@ -67,6 +68,12 @@ def find_code_file(search_path, base_name, extension):
         if target_filename in filenames:
             return os.path.join(dirpath, target_filename)
     raise FileNotFoundError(f"File '{target_filename}' not found under '{search_path}'")
+
+def print_models():
+    print("Available models:")
+    for i in range(len(OPENROUTER_MODELS)):
+        print(f"  [{i}] {OPENROUTER_MODELS[i]}")
+    print()
 
 def call_openrouter(prompt, api_key, model_index):
     headers = {
@@ -125,6 +132,13 @@ def main():
         default=DEFAULT_MODEL,
         help="Select model from preset list"
     )
+    
+    if len(sys.argv) == 1:
+        parser.print_help()
+        print()
+        print_models()
+        sys.exit(0)
+    
     args = parser.parse_args()
 
     selected_model=int(args.model)
@@ -134,9 +148,8 @@ def main():
         note_that="Note that for this review: " + str(args.note)
 
     if selected_model < 0 or selected_model >= len(OPENROUTER_MODELS):
-        print(f"Model index {selected_model} invalid. Available models:\n")
-        for i in range(len(OPENROUTER_MODELS)):
-            print(f"[{i}] {OPENROUTER_MODELS[i]}")
+        print(f"Model index {selected_model} invalid.")
+        print_models()
         return False
 
     try:
