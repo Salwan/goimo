@@ -42,6 +42,40 @@ func (v *Vec3) AddScaled(other Vec3, s float64) Vec3 {
 	return Vec3{v.x + other.x*s, v.y + other.y*s, v.z + other.z*s}
 }
 
+// Sets this vector to `this` + `v` * `s` and returns `this`.
+func (v *Vec3) AddScaledEq(other Vec3, s float64) *Vec3 {
+	v.x += other.x * s
+	v.y += other.y * s
+	v.z += other.z * s
+	return v
+}
+
+// Sets this vector to `this` + `v` and returns `this`.
+func (v *Vec3) AddEq(other Vec3) *Vec3 {
+	v.x += other.x
+	v.y += other.y
+	v.z += other.z
+	return v
+}
+
+// Sets this vector to (`this.x` + `vx`, `this.y` + `vy`, `this.z` + `vz`) and returns `this`.
+func (v *Vec3) Add3Eq(vx, vy, vz float64) *Vec3 {
+	v.x += vx
+	v.y += vy
+	v.z += vz
+	return v
+}
+
+// Returns Vec3 = this + b * s, implements M.vec3_addRhsScaled()
+// Identical to Vec3.AddScaled, duplicated for matching Haxe math code.
+func (v *Vec3) AddRhsScaled(b Vec3, s float64) Vec3 {
+	return Vec3{
+		v.x + b.x*s,
+		v.y + b.y*s,
+		v.z + b.z*s,
+	}
+}
+
 // Returns `this` - `v`.
 func (v *Vec3) Sub(other Vec3) Vec3 {
 	return Vec3{v.x - other.x, v.y - other.y, v.z - other.z}
@@ -73,39 +107,6 @@ func (v *Vec3) Cross(other Vec3) Vec3 {
 		v.y*other.z - v.z*other.y,
 		v.z*other.x - v.x*other.z,
 		v.x*other.y - v.y*other.x,
-	}
-}
-
-// Sets this vector to `this` + `v` and returns `this`.
-func (v *Vec3) AddEq(other Vec3) *Vec3 {
-	v.x += other.x
-	v.y += other.y
-	v.z += other.z
-	return v
-}
-
-// Sets this vector to (`this.x` + `vx`, `this.y` + `vy`, `this.z` + `vz`) and returns `this`.
-func (v *Vec3) Add3Eq(vx, vy, vz float64) *Vec3 {
-	v.x += vx
-	v.y += vy
-	v.z += vz
-	return v
-}
-
-// Sets this vector to `this` + `v` * `s` and returns `this`.
-func (v *Vec3) AddScaledEq(other Vec3, s float64) *Vec3 {
-	v.x += other.x * s
-	v.y += other.y * s
-	v.z += other.z * s
-	return v
-}
-
-// Returns Vec3 = this + b * s, implements M.vec3_addRhsScaled()
-func (v *Vec3) AddRhsScaled(b Vec3, s float64) Vec3 {
-	return Vec3{
-		v.x + b.x*s,
-		v.y + b.y*s,
-		v.z + b.z*s,
 	}
 }
 
