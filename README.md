@@ -20,7 +20,10 @@ TODO
 
 ## Compilations
 
-TODO
+* Run with: `go run .`
+* Run tests with: `go test ./...`
+* Build debug with: `go build .`
+* Build release with: `go build . -tags=release`
 
 ## License
 The MIT License
